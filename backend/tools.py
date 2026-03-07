@@ -1,6 +1,7 @@
 """
 MCP-style tools for the LangGraph agents.
-Integrates real Open-Meteo weather API + mock traffic/fleet/warehouse tools.
+Integrates real Open-Meteo weather API, Karrio carrier rates,
+Fleetbase fleet data, and warehouse capacity tools.
 """
 from langchain_core.tools import tool
 import httpx
@@ -9,6 +10,9 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+from carrier_rates import get_real_carrier_rate
+from fleetbase_client import get_fleet_positions
 
 TOMTOM_API_KEY = os.getenv("TOMTOM_API_KEY", "")
 
@@ -195,16 +199,35 @@ def get_route_disruption_score(source: str, destination: str) -> dict:
 #  MCP Tool 2: Carrier Quote
 # ──────────────────────────────────────────
 @tool
-def request_carrier_quote(carrier_id: str, shipment_id: str, distance_km: float, weather_severity: float = 0.0) -> dict:
+def request_carrier_quote(carrier_id: str, shipment_id: str, distance_km: float, weather_severity: float = 0.0, weight_kg: float = 500.0, source: str = "", destination: str = "") -> dict:
     """
     Requests a dynamic price quote from a carrier agent.
-    The carrier uses dynamic pricing: bad weather = higher operating cost = higher quote.
+    Tries Karrio real rates first, falls back to formula-based pricing.
     Args:
         carrier_id: The carrier's ID.
         shipment_id: The shipment's ID.
         distance_km: Route distance in km.
         weather_severity: Current weather severity (0-1) affecting operating costs.
+        weight_kg: Shipment weight in kg.
+        source: Source location name.
+        destination: Destination location name.
     """
+    # Try Karrio real carrier rates first
+    karrio_rate = get_real_carrier_rate(
+        carrier_id=carrier_id,
+        weight_kg=weight_kg,
+        source=source,
+        destination=destination,
+        distance_km=distance_km,
+    )
+    if karrio_rate:
+        return {
+            **karrio_rate,
+            "shipment_id": shipment_id,
+            "source": "karrio_live",
+        }
+
+    # Fallback: formula-based pricing
     base_rates = {
         "carrier_a": 1.2,
         "carrier_b": 0.8,
@@ -231,6 +254,7 @@ def request_carrier_quote(carrier_id: str, shipment_id: str, distance_km: float,
         "quoted_price": round(quote, 2),
         "estimated_delivery_hours": round(eta_hours, 1),
         "dynamic_multiplier": round(weather_multiplier * market_variance, 3),
+        "source": "formula_fallback",
     }
 
 
@@ -285,9 +309,16 @@ def check_hub_capacity(hub_id: str) -> dict:
 def get_carrier_fleet_status(carrier_id: str) -> dict:
     """
     Gets the current fleet status for a carrier (truck availability, load).
+    Tries Fleetbase live data first, falls back to mock data.
     Args:
         carrier_id: The carrier's ID.
     """
+    # Try Fleetbase live fleet data first
+    fleetbase_data = get_fleet_positions(carrier_id)
+    if fleetbase_data:
+        return fleetbase_data
+
+    # Fallback: mock fleet data
     fleet_data = {
         "carrier_a": {"total_trucks": 25, "active": 22, "available": 3},
         "carrier_b": {"total_trucks": 40, "active": 28, "available": 12},
@@ -300,4 +331,5 @@ def get_carrier_fleet_status(carrier_id: str) -> dict:
         "carrier_id": carrier_id,
         **data,
         "utilization_pct": round(data["active"] / data["total_trucks"] * 100, 1),
+        "source": "mock_fallback",
     }

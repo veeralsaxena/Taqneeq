@@ -2,9 +2,9 @@
 Autonomous Supply Chain Market — FastAPI Server.
 Provides all API endpoints for the 4-screen frontend dashboard.
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 import uvicorn
 import uuid
 import asyncio
@@ -22,11 +22,20 @@ from tools import (
     set_disruption_override, clear_disruption_overrides,
     fetch_live_weather, weather_to_severity, _get_coords,
 )
+from event_store import event_store
+from ws_manager import ws_manager
+from carrier_rates import get_karrio_status
+from fleetbase_client import get_fleetbase_status
+from database import init_db, DB_BACKEND, persist_negotiation
+from redis_client import check_rate_limit, get_redis_status
+from auth import require_api_key, require_api_key_or_demo, get_auth_status
+from llm_safety import get_validation_stats
+from rollback import rollback_manager
 
 app = FastAPI(
     title="Autonomous Supply Chain Market",
-    description="Multi-Agent Logistics Negotiation Platform",
-    version="2.0.0",
+    description="Multi-Agent Logistics Negotiation Platform — NeuroLogistics",
+    version="3.0.0",
 )
 
 app.add_middleware(
@@ -36,6 +45,40 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ─── Rate Limiting Middleware ───
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Apply rate limiting to all endpoints."""
+    client_ip = request.client.host if request.client else "unknown"
+    is_mutation = request.method in ("POST", "PUT", "DELETE", "PATCH")
+    max_req = 20 if is_mutation else 100
+    
+    result = check_rate_limit(f"{client_ip}:{request.method}", max_req, 60)
+    if not result["allowed"]:
+        return JSONResponse(
+            status_code=429,
+            content={
+                "detail": "Rate limit exceeded. Try again later.",
+                "remaining": result["remaining"],
+                "limit": result["limit"],
+            },
+            headers={"Retry-After": "60"},
+        )
+    
+    response = await call_next(request)
+    response.headers["X-RateLimit-Remaining"] = str(result["remaining"])
+    response.headers["X-RateLimit-Limit"] = str(result["limit"])
+    return response
+
+
+# ─── Database Startup ───
+@app.on_event("startup")
+def startup_event():
+    """Initialize database tables on server start."""
+    init_db()
+    print(f"🗄️  Database backend: {DB_BACKEND}")
 
 # ─── In-Memory State ───
 db: Dict[str, Any] = {
@@ -438,7 +481,141 @@ async def get_guardrail_policy():
         },
     }
 
+# ─── WebSocket Real-Time Feed ───
+
+@app.websocket("/ws/feed")
+async def websocket_global_feed(websocket: WebSocket):
+    """Global market feed — all negotiation events in real-time."""
+    await ws_manager.connect_global(websocket)
+    try:
+        while True:
+            # Keep connection alive, listen for client pings
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_json({"type": "pong"})
+    except WebSocketDisconnect:
+        await ws_manager.disconnect_global(websocket)
+
+
+@app.websocket("/ws/negotiation/{shipment_id}")
+async def websocket_shipment_feed(websocket: WebSocket, shipment_id: str):
+    """Per-shipment live negotiation feed."""
+    await ws_manager.connect_shipment(websocket, shipment_id)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_json({"type": "pong", "shipment_id": shipment_id})
+    except WebSocketDisconnect:
+        await ws_manager.disconnect_shipment(websocket, shipment_id)
+
+
+@app.get("/api/ws/status")
+def get_ws_status():
+    """Returns WebSocket connection status."""
+    return ws_manager.get_status()
+
+
+# ─── Event Sourcing Audit Trail ───
+
+@app.get("/api/events/audit")
+def get_event_audit():
+    """Returns the full event audit summary across all negotiations."""
+    return event_store.get_audit_summary()
+
+
+@app.get("/api/events/replay/{negotiation_id}")
+def replay_negotiation_events(negotiation_id: str):
+    """Replays a specific negotiation from its event stream."""
+    result = event_store.replay_negotiation(negotiation_id)
+    if not result["found"]:
+        raise HTTPException(status_code=404, detail=f"Negotiation {negotiation_id} not found")
+    return result
+
+
+@app.get("/api/events/stream")
+def get_event_stream(negotiation_id: str = None, shipment_id: str = None, limit: int = 200):
+    """Query the event store with optional filters."""
+    return {
+        "events": event_store.get_events(
+            negotiation_id=negotiation_id,
+            shipment_id=shipment_id,
+            limit=limit,
+        )
+    }
+
+
+# ─── Integration Status ───
+
+@app.get("/api/integrations")
+def get_integrations_status():
+    """Returns the status of all external integrations."""
+    return {
+        "karrio": get_karrio_status(),
+        "fleetbase": get_fleetbase_status(),
+        "websocket": ws_manager.get_status(),
+        "event_store": event_store.get_audit_summary(),
+        "database": {"backend": DB_BACKEND, "connected": True},
+        "redis": get_redis_status(),
+        "auth": get_auth_status(),
+    }
+
+
+# ─── Rollback Endpoints ───
+
+@app.post("/api/rollback/{decision_id}")
+def rollback_decision(decision_id: str, reason: str = "Manual rollback", _auth=Depends(require_api_key_or_demo)):
+    """Roll back a bad reroute decision. Reverts to original carrier + applies extra penalty."""
+    result = rollback_manager.rollback(
+        decision_id=decision_id,
+        reason=reason,
+        carrier_db=CARRIER_DB,
+    )
+    if not result.get("success"):
+        raise HTTPException(status_code=404, detail=result.get("error", "Rollback failed"))
+    return result
+
+
+@app.get("/api/rollback/history")
+def get_rollback_history():
+    """Get all rollback records."""
+    return rollback_manager.get_rollback_history()
+
+
+@app.get("/api/rollback/stats")
+def get_rollback_stats():
+    """Get rollback statistics (total tracked, rollback rate %)."""
+    return rollback_manager.get_stats()
+
+
+# ─── LLM Safety ───
+
+@app.get("/api/safety/llm")
+def get_llm_safety_stats():
+    """Returns LLM output validation statistics — shows responsible AI compliance."""
+    return get_validation_stats()
+
+
+# ─── Auth & Security Status ───
+
+@app.get("/api/security/status")
+def get_security_status():
+    """Returns the full security posture of the system."""
+    return {
+        "auth": get_auth_status(),
+        "rate_limiting": {"enabled": True, "read_limit": "100/min", "mutation_limit": "20/min"},
+        "guardrails": {
+            "cost_auto_limit": GuardrailPolicy.COST_AUTO_LIMIT,
+            "cost_recommend_limit": GuardrailPolicy.COST_RECOMMEND_LIMIT,
+            "delay_auto_limit": GuardrailPolicy.DELAY_AUTO_LIMIT,
+            "delay_escalate_limit": GuardrailPolicy.DELAY_ESCALATE_LIMIT,
+        },
+        "llm_safety": get_validation_stats(),
+        "rollback": rollback_manager.get_stats(),
+        "database": {"backend": DB_BACKEND, "persistent_learning": DB_BACKEND != "sqlite"},
+        "redis": get_redis_status(),
+    }
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
-

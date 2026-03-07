@@ -1,10 +1,18 @@
 """
 llm_reasoning.py — Gemini 2.0 Flash powered reasoning for agent narratives.
 Provides contextual disruption analysis, bid explanations, and learning insights.
+Domain-tuned with logistics expertise via domain_tuning.py.
 """
 
 import os
 from typing import Any
+from llm_safety import validate_and_return
+
+from domain_tuning import (
+    get_domain_system_prompt,
+    get_carrier_sla_context,
+    get_penalty_context,
+)
 
 # Try to use Gemini; fall back to mock if unavailable
 try:
@@ -21,13 +29,17 @@ except Exception:
     _LLM_AVAILABLE = False
     _llm = None
 
+# Pre-load domain system prompt
+_DOMAIN_PROMPT = get_domain_system_prompt()
+
 
 def _ask_llm(prompt: str) -> str:
-    """Send a prompt to Gemini and return the text response."""
+    """Send a domain-tuned prompt to Gemini and return the text response."""
     if not _LLM_AVAILABLE or _llm is None:
         return ""
     try:
-        response = _llm.invoke(prompt)
+        full_prompt = f"{_DOMAIN_PROMPT}\n\n{prompt}"
+        response = _llm.invoke(full_prompt)
         return response.content.strip() if hasattr(response, "content") else str(response).strip()
     except Exception as e:
         return f"(LLM unavailable: {e})"
@@ -38,24 +50,36 @@ def reason_about_disruption(
     prediction: dict[str, Any],
     carrier_info: dict[str, Any],
 ) -> str:
-    """Generate a contextual disruption analysis using Gemini."""
+    """Generate a contextual disruption analysis using Gemini with domain grounding."""
+    carrier_context = get_carrier_sla_context(
+        carrier_info.get("reliability", 0.5),
+        carrier_info.get("name", "Unknown Carrier"),
+    )
+    penalty_context = get_penalty_context(
+        prediction.get("predicted_delay_hours", 0),
+        500.0,  # default budget for context
+        2,  # default priority
+    )
     prompt = (
         "You are an AI logistics analyst. In ONE concise sentence (max 40 words), "
         "analyze this supply chain disruption and suggest urgency level.\n\n"
         f"Disruption: {route_data.get('disruption_type', 'unknown')}\n"
-        f"Severity: {route_data.get('severity', 'N/A')}/10\n"
+        f"Weather severity: {route_data.get('weather_severity', 'N/A')}/1.0\n"
+        f"Traffic index: {route_data.get('traffic_index', 'N/A')}/1.0\n"
         f"Predicted delay: {prediction.get('predicted_delay_hours', '?')} hours\n"
         f"Risk level: {prediction.get('risk_level', '?')}\n"
-        f"Current carrier trust: {carrier_info.get('trust_score', '?')}\n"
+        f"{carrier_context}\n"
+        f"{penalty_context}\n"
         "Response:"
     )
-    result = _ask_llm(prompt)
-    return result or (
+    fallback = (
         f"Disruption '{route_data.get('disruption_type', 'unknown')}' detected — "
-        f"severity {route_data.get('severity', '?')}/10, "
+        f"weather severity {route_data.get('weather_severity', '?')}/1.0, "
         f"est. {prediction.get('predicted_delay_hours', '?')}hr delay. "
         f"Recommend immediate multi-carrier bidding."
     )
+    result = _ask_llm(prompt)
+    return validate_and_return(result, fallback, context="disruption_analysis") if result else fallback
 
 
 def explain_bid_selection(
@@ -64,29 +88,32 @@ def explain_bid_selection(
     budget: float,
     warehouse_status: list[Any] | None = None,
 ) -> str:
-    """Explain why a particular carrier bid was selected."""
+    """Explain why a particular carrier bid was selected, with domain context."""
     bid_summary = "; ".join(
-        f"{b.get('carrier_id', '?')}: ${b.get('quoted_price', 0):.0f}, "
-        f"ETA {b.get('estimated_hours', '?')}h, trust {b.get('trust_score', '?')}"
+        f"{b.get('carrier_name', b.get('carrier_id', '?'))}: ${b.get('quoted_price', 0):.0f}, "
+        f"ETA {b.get('estimated_delivery_hours', '?')}h, "
+        f"reliability {b.get('reliability', '?')}"
         for b in bids[:5]
     )
+    chosen_name = chosen_bid.get("carrier_name", chosen_bid.get("carrier_id", "?"))
     prompt = (
         "You are an AI procurement analyst. In ONE concise sentence (max 40 words), "
         "explain why this carrier was chosen over others.\n\n"
         f"Budget: ${budget:.0f}\n"
         f"Bids: {bid_summary}\n"
-        f"Winner: {chosen_bid.get('carrier_id', '?')} "
+        f"Winner: {chosen_name} "
         f"(${chosen_bid.get('quoted_price', 0):.0f}, "
-        f"trust: {chosen_bid.get('trust_score', '?')})\n"
+        f"reliability: {chosen_bid.get('reliability', '?')})\n"
         "Response:"
     )
-    result = _ask_llm(prompt)
-    return result or (
-        f"Selected {chosen_bid.get('carrier_id', '?')} — best utility score "
+    fallback = (
+        f"Selected {chosen_name} — best utility score "
         f"balancing ${chosen_bid.get('quoted_price', 0):.0f} cost, "
-        f"{chosen_bid.get('estimated_hours', '?')}h ETA, and "
-        f"{chosen_bid.get('trust_score', '?')} trust rating."
+        f"{chosen_bid.get('estimated_delivery_hours', '?')}h ETA, and "
+        f"{chosen_bid.get('reliability', '?')} reliability."
     )
+    result = _ask_llm(prompt)
+    return validate_and_return(result, fallback, context="bid_selection") if result else fallback
 
 
 def generate_learning_insight(
@@ -96,7 +123,7 @@ def generate_learning_insight(
 ) -> str:
     """Generate a strategic learning insight from the negotiation outcome."""
     updates_str = "; ".join(
-        f"{u.get('carrier_id', '?')}: {u.get('old_score', '?')} → {u.get('new_score', '?')}"
+        f"{u.get('carrier_id', '?')}: {u.get('old_score', '?'):.0%} → {u.get('new_score', '?'):.0%} ({u.get('reason', '?')})"
         for u in reputation_updates[:5]
     )
     prompt = (
@@ -106,8 +133,10 @@ def generate_learning_insight(
         f"Reputation changes: {updates_str}\n"
         "Response:"
     )
-    result = _ask_llm(prompt)
-    return result or (
+    fallback = (
         f"Outcome: {outcome}. Reputation database updated for "
         f"{len(reputation_updates)} carriers. System memory strengthened."
     )
+    result = _ask_llm(prompt)
+    return validate_and_return(result, fallback, context="learning_insight") if result else fallback
+

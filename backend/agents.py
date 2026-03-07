@@ -21,8 +21,12 @@ from llm_reasoning import (
     explain_bid_selection,
     generate_learning_insight,
 )
+from event_store import event_store, EventType
 from guardrails import GuardrailPolicy
 from decision_tracker import tracker as decision_tracker
+from rollback import rollback_manager
+from database import persist_reputation_update, persist_decision, persist_negotiation
+from redis_client import publish_agent_event
 
 
 # ─── State Definition ───
@@ -57,6 +61,7 @@ class AgentState(TypedDict):
 
     # Logging
     negotiation_log: List[str]
+    negotiation_id: str
     timestamp: str
 
 
@@ -86,6 +91,14 @@ def network_supervisor(state: AgentState) -> AgentState:
     })
     state["route_data"] = route_data
 
+    event_store.append(
+        negotiation_id=state["negotiation_id"],
+        shipment_id=state["shipment_id"],
+        agent_name="Network Supervisor",
+        event_type=EventType.ROUTE_SCANNED,
+        payload={"weather_severity": route_data["weather_severity"], "traffic_index": route_data["traffic_index"], "disruption_type": route_data["disruption_type"]},
+    )
+
     log.append(
         f"[Network Supervisor] 🌤️ Weather API: severity={route_data['weather_severity']}, "
         f"traffic={route_data['traffic_index']}, type={route_data['disruption_type']}"
@@ -113,6 +126,14 @@ def network_supervisor(state: AgentState) -> AgentState:
         f"(risk={risk}, confidence={conf:.0%})"
     )
 
+    event_store.append(
+        negotiation_id=state["negotiation_id"],
+        shipment_id=state["shipment_id"],
+        agent_name="Network Supervisor",
+        event_type=EventType.ML_PREDICTION,
+        payload={"predicted_delay_hours": delay, "risk_level": risk, "confidence": conf},
+    )
+
     # Decision: trigger negotiation?
     if delay > 2.0:
         state["disruption_detected"] = True
@@ -126,6 +147,14 @@ def network_supervisor(state: AgentState) -> AgentState:
         carrier_info = CARRIER_DB.get(carrier_id, {})
         llm_assessment = reason_about_disruption(route_data, prediction, carrier_info)
         log.append(f"[Gemini 🤖] {llm_assessment}")
+
+        event_store.append(
+            negotiation_id=state["negotiation_id"],
+            shipment_id=state["shipment_id"],
+            agent_name="Network Supervisor",
+            event_type=EventType.DISRUPTION_DETECTED,
+            payload={"delay_hours": delay, "disruption_type": route_data["disruption_type"], "llm_assessment": llm_assessment},
+        )
     else:
         state["disruption_detected"] = False
         log.append(f"[Network Supervisor] ✅ Route healthy. No intervention needed.")
@@ -144,6 +173,14 @@ def carrier_agents(state: AgentState) -> AgentState:
 
     log = state["negotiation_log"]
     log.append(f"[Shipment {state['shipment_id']}] 📢 Broadcasting RFQ to all available carriers...")
+
+    event_store.append(
+        negotiation_id=state["negotiation_id"],
+        shipment_id=state["shipment_id"],
+        agent_name="Carrier Agents",
+        event_type=EventType.RFQ_BROADCAST,
+        payload={"current_carrier_id": state["current_carrier_id"]},
+    )
 
     bids = []
     weather_sev = state["route_data"].get("weather_severity", 0)
@@ -178,6 +215,13 @@ def carrier_agents(state: AgentState) -> AgentState:
             f"ETA: {quote['estimated_delivery_hours']:.1f}hrs | "
             f"Rep: {cdata['reliability']:.0%} | Trucks: {fleet['available']}"
         )
+        event_store.append(
+            negotiation_id=state["negotiation_id"],
+            shipment_id=state["shipment_id"],
+            agent_name=cdata["name"],
+            event_type=EventType.BID_SUBMITTED,
+            payload={"carrier_id": cid, "quoted_price": quote["quoted_price"], "eta_hours": quote["estimated_delivery_hours"], "reliability": cdata["reliability"]},
+        )
 
     state["bids"] = bids
     return state
@@ -202,6 +246,14 @@ def warehouse_agent(state: AgentState) -> AgentState:
         f"[Warehouse {hub_data.get('hub_name', state['destination'])}] {status_emoji} "
         f"Capacity: {hub_data['occupancy_pct']}% | Status: {hub_data['congestion_status']} | "
         f"Accepting: {'Yes' if hub_data['accepting_shipments'] else 'NO'}"
+    )
+
+    event_store.append(
+        negotiation_id=state["negotiation_id"],
+        shipment_id=state["shipment_id"],
+        agent_name="Warehouse Agent",
+        event_type=EventType.CAPACITY_CHECK,
+        payload={"hub_id": hub_data.get("hub_id"), "occupancy_pct": hub_data["occupancy_pct"], "accepting": hub_data["accepting_shipments"]},
     )
 
     if not hub_data["accepting_shipments"]:
@@ -364,6 +416,17 @@ def shipment_agent(state: AgentState) -> AgentState:
         approval_level=guardrail["approval_level"],
     )
 
+    # Register rollback snapshot (pre-action state)
+    rollback_manager.register_action(
+        decision_id=decision_id,
+        shipment_id=state["shipment_id"],
+        original_carrier_id=state["current_carrier_id"],
+        new_carrier_id=best["carrier_id"],
+        original_cost=0.0,
+        new_cost=best["quoted_price"],
+    )
+    log.append(f"[Rollback 🔄] Pre-action snapshot saved. Rollback available for decision {decision_id}.")
+
     return state
 
 
@@ -420,6 +483,15 @@ def learning_agent(state: AgentState) -> AgentState:
     state["reputation_updates"] = updates
     log.append(f"[Learning Agent] 💾 Outcome recorded. System memory updated.")
 
+    # Persist reputation changes to Postgres
+    for u in updates:
+        persist_reputation_update(
+            carrier_id=u["carrier_id"],
+            new_score=u["new_score"],
+            reason=u["reason"],
+        )
+    log.append(f"[Learning Agent] 🗄️ Reputation persisted to database ({len(updates)} updates).")
+
     # 🤖 Gemini LLM: generate strategic learning insight
     llm_insight = generate_learning_insight(
         reputation_updates=updates,
@@ -427,6 +499,14 @@ def learning_agent(state: AgentState) -> AgentState:
         negotiation_log=log,
     )
     log.append(f"[Gemini 🤖] {llm_insight}")
+
+    event_store.append(
+        negotiation_id=state["negotiation_id"],
+        shipment_id=state["shipment_id"],
+        agent_name="Learning Agent",
+        event_type=EventType.REPUTATION_UPDATED,
+        payload={"updates": updates, "outcome": state["outcome"], "llm_insight": llm_insight},
+    )
 
     return state
 
@@ -494,12 +574,32 @@ def run_negotiation(shipment_data: dict) -> dict:
         "outcome": "PENDING",
         "reputation_updates": [],
         "negotiation_log": [],
+        "negotiation_id": f"neg_{uuid.uuid4().hex[:8]}",
         "timestamp": datetime.utcnow().isoformat(),
     }
 
+    # Emit start event
+    event_store.append(
+        negotiation_id=initial_state["negotiation_id"],
+        shipment_id=initial_state["shipment_id"],
+        agent_name="System",
+        event_type=EventType.NEGOTIATION_STARTED,
+        payload={"source": initial_state["source"], "destination": initial_state["destination"], "budget": initial_state["budget"]},
+    )
+
     final_state = negotiation_graph.invoke(initial_state)
 
+    # Emit completion event
+    event_store.append(
+        negotiation_id=initial_state["negotiation_id"],
+        shipment_id=initial_state["shipment_id"],
+        agent_name="System",
+        event_type=EventType.NEGOTIATION_COMPLETED,
+        payload={"outcome": final_state.get("outcome", "PENDING"), "chosen_carrier": final_state.get("chosen_carrier_id"), "final_cost": final_state.get("final_cost", 0)},
+    )
+
     return {
+        "negotiation_id": initial_state["negotiation_id"],
         "negotiation_log": final_state["negotiation_log"],
         "chosen_carrier_id": final_state.get("chosen_carrier_id"),
         "final_cost": final_state.get("final_cost", 0),

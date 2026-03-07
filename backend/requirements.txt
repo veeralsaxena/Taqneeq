@@ -1,5 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 langgraph
 langchain-google-genai
 langchain-core
@@ -11,3 +11,8 @@ numpy
 httpx
 joblib
 pytest
+karrio
+websockets
+sqlalchemy
+psycopg2-binary
+redis
