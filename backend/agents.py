@@ -4,6 +4,7 @@ Implements the full Observe → Reason → Decide → Act → Learn loop
 with 5 agent nodes and conditional branching.
 """
 import os
+import uuid
 from typing import TypedDict, List, Dict, Any
 from langgraph.graph import StateGraph, END
 from datetime import datetime
@@ -20,6 +21,8 @@ from llm_reasoning import (
     explain_bid_selection,
     generate_learning_insight,
 )
+from guardrails import GuardrailPolicy
+from decision_tracker import tracker as decision_tracker
 
 
 # ─── State Definition ───
@@ -44,6 +47,10 @@ class AgentState(TypedDict):
     chosen_carrier_id: str
     final_cost: float
     outcome: str  # SUCCESS, ESCALATED, NO_ACTION
+
+    # Guardrails
+    guardrail_result: Dict[str, Any]
+    decision_id: str
 
     # Learning layer
     reputation_updates: List[Dict[str, Any]]
@@ -211,12 +218,27 @@ def shipment_agent(state: AgentState) -> AgentState:
     """
     DECIDE: Evaluates bids using utility function.
     ACT: Selects best carrier or escalates to human.
+    GUARDRAILS: Checks policy before acting.
     """
     log = state["negotiation_log"]
+    decision_id = str(uuid.uuid4())[:8]
+    state["decision_id"] = decision_id
 
     if not state["disruption_detected"]:
         state["chosen_carrier_id"] = state["current_carrier_id"]
         state["outcome"] = "NO_ACTION"
+        state["guardrail_result"] = {"approval_level": "AUTONOMOUS", "requires_human": False, "risk_factors": []}
+        # Record decision for tracking
+        decision_tracker.record_decision(
+            decision_id=decision_id,
+            shipment_id=state["shipment_id"],
+            action="NO_ACTION",
+            chosen_carrier_id=state["current_carrier_id"],
+            predicted_delay_hours=state.get("delay_prediction", {}).get("predicted_delay_hours", 0),
+            predicted_cost=0.0,
+            confidence=state.get("delay_prediction", {}).get("confidence", 1.0),
+            approval_level="AUTONOMOUS",
+        )
         return state
 
     bids = state["bids"]
@@ -228,9 +250,20 @@ def shipment_agent(state: AgentState) -> AgentState:
     if not valid_bids:
         state["outcome"] = "ESCALATED"
         state["chosen_carrier_id"] = state["current_carrier_id"]
+        state["guardrail_result"] = {"approval_level": "ESCALATE", "requires_human": True, "risk_factors": ["No bids within budget"]}
         log.append(
             f"[Shipment {state['shipment_id']}] 🚨 ESCALATION: No carriers within "
             f"${budget:.2f} budget. Requires human approval!"
+        )
+        decision_tracker.record_decision(
+            decision_id=decision_id,
+            shipment_id=state["shipment_id"],
+            action="ESCALATED",
+            chosen_carrier_id=state["current_carrier_id"],
+            predicted_delay_hours=state.get("delay_prediction", {}).get("predicted_delay_hours", 0),
+            predicted_cost=0.0,
+            confidence=state.get("delay_prediction", {}).get("confidence", 0.5),
+            approval_level="ESCALATE",
         )
         return state
 
@@ -244,6 +277,52 @@ def shipment_agent(state: AgentState) -> AgentState:
     # Sort by utility (lower = better)
     valid_bids.sort(key=utility)
     best = valid_bids[0]
+
+    # ──── GUARDRAIL CHECK ────
+    prediction = state.get("delay_prediction", {})
+    guardrail = GuardrailPolicy.evaluate_action(
+        cost=best["quoted_price"],
+        predicted_delay=prediction.get("predicted_delay_hours", 0),
+        confidence=prediction.get("confidence", 0.5),
+        carrier_reliability=best.get("reliability", 0.5),
+    )
+    state["guardrail_result"] = guardrail
+
+    if guardrail["approval_level"] == "ESCALATE":
+        state["outcome"] = "ESCALATED"
+        state["chosen_carrier_id"] = state["current_carrier_id"]
+        log.append(
+            f"[Guardrails 🛡️] ESCALATION REQUIRED — {guardrail['reason']}"
+        )
+        log.append(
+            f"[Shipment {state['shipment_id']}] 🚨 Action blocked by guardrails. "
+            f"Human approval needed for ${best['quoted_price']:.2f} reroute."
+        )
+        decision_tracker.record_decision(
+            decision_id=decision_id,
+            shipment_id=state["shipment_id"],
+            action="ESCALATED",
+            chosen_carrier_id=best["carrier_id"],
+            predicted_delay_hours=prediction.get("predicted_delay_hours", 0),
+            predicted_cost=best["quoted_price"],
+            confidence=prediction.get("confidence", 0.5),
+            approval_level="ESCALATE",
+        )
+        return state
+
+    if guardrail["approval_level"] == "RECOMMEND":
+        log.append(
+            f"[Guardrails 🛡️] RECOMMEND mode — {guardrail['reason']}"
+        )
+        log.append(
+            f"[Shipment {state['shipment_id']}] ⚠️ Agent recommends reroute but "
+            f"flagged for human review. Proceeding with advisory."
+        )
+
+    if guardrail["approval_level"] == "AUTONOMOUS":
+        log.append(
+            f"[Guardrails 🛡️] ✅ All parameters within safe limits. Autonomous action approved."
+        )
 
     state["chosen_carrier_id"] = best["carrier_id"]
     state["final_cost"] = best["quoted_price"]
@@ -272,6 +351,18 @@ def shipment_agent(state: AgentState) -> AgentState:
         warehouse_status=state.get("warehouse_responses", []),
     )
     log.append(f"[Gemini 🤖] {llm_explanation}")
+
+    # Record decision for post-action tracking
+    decision_tracker.record_decision(
+        decision_id=decision_id,
+        shipment_id=state["shipment_id"],
+        action="REROUTE",
+        chosen_carrier_id=best["carrier_id"],
+        predicted_delay_hours=prediction.get("predicted_delay_hours", 0),
+        predicted_cost=best["quoted_price"],
+        confidence=prediction.get("confidence", 0.5),
+        approval_level=guardrail["approval_level"],
+    )
 
     return state
 
@@ -396,6 +487,8 @@ def run_negotiation(shipment_data: dict) -> dict:
         "route_data": {},
         "warehouse_responses": [],
         "bids": [],
+        "guardrail_result": {},
+        "decision_id": "",
         "chosen_carrier_id": "",
         "final_cost": 0.0,
         "outcome": "PENDING",
@@ -415,4 +508,6 @@ def run_negotiation(shipment_data: dict) -> dict:
         "bids": final_state.get("bids", []),
         "reputation_updates": final_state.get("reputation_updates", []),
         "route_data": final_state.get("route_data", {}),
+        "guardrail_result": final_state.get("guardrail_result", {}),
+        "decision_id": final_state.get("decision_id", ""),
     }

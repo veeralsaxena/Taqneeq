@@ -10,6 +10,34 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+TOMTOM_API_KEY = os.getenv("TOMTOM_API_KEY", "")
+
+
+def fetch_live_traffic(lat: float, lng: float) -> float:
+    """
+    Fetches real-time traffic congestion from TomTom Traffic Flow API.
+    Returns a congestion ratio 0-1 (0=free flow, 1=standstill).
+    Falls back to random mock if no API key or API failure.
+    Free tier: 2,500 requests/day — no credit card required.
+    """
+    if not TOMTOM_API_KEY:
+        return random.uniform(0.1, 0.4)  # mock fallback
+    try:
+        url = (
+            f"https://api.tomtom.com/traffic/services/4/flowSegmentData/"
+            f"absolute/10/json?point={lat},{lng}&key={TOMTOM_API_KEY}"
+        )
+        resp = httpx.get(url, timeout=5)
+        data = resp.json().get("flowSegmentData", {})
+        current = data.get("currentSpeed", 50)
+        free_flow = data.get("freeFlowSpeed", 60)
+        if free_flow <= 0:
+            return 0.2
+        congestion = 1.0 - (current / free_flow)
+        return max(0.0, min(1.0, congestion))
+    except Exception:
+        return random.uniform(0.1, 0.4)  # mock fallback
+
 
 # ──────────────────────────────────────────────
 # REAL API: Open-Meteo Weather (no key needed)
@@ -142,8 +170,8 @@ def get_route_disruption_score(source: str, destination: str) -> dict:
     weather_severity = max(src_severity, dst_severity)
     worst_weather = src_weather if src_severity >= dst_severity else dst_weather
 
-    # Mock traffic index (would use TomTom in production)
-    traffic_index = random.uniform(0.1, 0.4)
+    # Real TomTom Traffic API (falls back to mock if no key)
+    traffic_index = fetch_live_traffic(src_lat, src_lng)
 
     # Approximate distance
     import math
