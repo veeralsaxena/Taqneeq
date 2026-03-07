@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Postgres + pgvector (Serves as both relational DB and Vector DB for agents)
+  postgres:
+    image: ankane/pgvector:v0.5.1
+    container_name: logistics_postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: logistics_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Redis (For real-time message brokering, agent pub/sub, and caching)
+  redis:
+    image: redis:7-alpine
+    container_name: logistics_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  # Optional Adminer for easy DB inspection
+  adminer:
+    image: adminer
+    container_name: logistics_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
