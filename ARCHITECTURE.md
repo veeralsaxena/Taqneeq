@@ -480,7 +480,7 @@ Judges watch the Agent Feed scroll in real-time:
 |---|---|---|
 | **Agent Orchestration** | LangGraph (Python) | Stateful, cyclic agent graphs with conditional edges |
 | **Agent Framework** | LangChain | Tool binding, LLM integration |
-| **LLM** | GPT-4o-mini (OpenAI) | Fast, cheap, good at reasoning with structured context |
+| **LLM** | Gemini 2.0 Flash (Google) | Fast, cost-effective, strong structured reasoning for agent narratives |
 | **ML Models** | Scikit-Learn (Random Forest) | Fast training, interpretable, no GPU required |
 | **Tool Calling (MCP)** | Custom `@tool` functions | Simulates real enterprise MCP server connections |
 | **API Backend** | FastAPI (Python) | Async-friendly, auto OpenAPI docs, easy to test |

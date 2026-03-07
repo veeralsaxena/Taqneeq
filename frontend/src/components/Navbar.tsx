@@ -41,7 +41,7 @@ export default function Navbar() {
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold tracking-[0.15em] uppercase text-white/90 group-hover:text-white transition-colors leading-tight">
-              Neural Logistics
+              NeuroLogistics
             </span>
             <span className="text-[9px] text-white/30 tracking-wider uppercase font-medium">
               Autonomous Supply Chain

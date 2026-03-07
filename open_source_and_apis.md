@@ -12,6 +12,7 @@ Instead of building everything from scratch, we will integrate cutting-edge open
 
 ### A. Core Agent Orchestration
 - **LangGraph (Python):** The backbone of our multi-agent system. It allows us to define agents as nodes in a cyclic graph with state. Perfect for competitive negotiations (Shipment vs. Carrier).
+- **Google Gemini 2.0 Flash:** The LLM powering agent reasoning. Provides contextual disruption analysis, bid selection explanations, and strategic learning insights in natural language.
 - **CrewAI or AutoGen:** Alternative agent frameworks if we want more conversational negotiation tracking.
 - **Model Context Protocol (MCP):** An open standard that allows us to plug real-world APIs directly into our AI agents safely.
 

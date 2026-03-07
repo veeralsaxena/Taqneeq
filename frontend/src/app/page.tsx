@@ -107,13 +107,13 @@ export default function PitchDeck() {
               </motion.div>
 
               <motion.div custom={1} variants={fadeUp} className="mt-4">
-                <div className="h-[100px] md:h-[130px] w-full flex justify-start items-center overflow-visible">
+                <div className="h-[70px] md:h-[80px] w-full flex justify-start items-center overflow-visible">
                   <GooeyText
-                    texts={["Neural Logistics", "Self-Negotiating", "Autonomous Market"]}
+                    texts={["NeuroLogistics", "Self-Negotiating", "Autonomous Market"]}
                     morphTime={1.4}
                     cooldownTime={1.5}
-                    className="h-[100px] md:h-[130px]"
-                    textClassName="text-white text-5xl md:text-[5.5rem] font-black tracking-tighter h-[100px] md:h-[130px] leading-[100px] md:leading-[130px]"
+                    className="h-[70px] md:h-[80px]"
+                    textClassName="text-white text-4xl md:text-[4rem] font-black tracking-tighter h-[70px] md:h-[80px] leading-[70px] md:leading-[80px]"
                   />
                 </div>
               </motion.div>

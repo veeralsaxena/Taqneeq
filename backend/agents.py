@@ -15,6 +15,11 @@ from tools import (
     get_carrier_fleet_status,
 )
 from ml_predictor import predict_delay
+from llm_reasoning import (
+    reason_about_disruption,
+    explain_bid_selection,
+    generate_learning_insight,
+)
 
 
 # ─── State Definition ───
@@ -108,6 +113,12 @@ def network_supervisor(state: AgentState) -> AgentState:
             f"[Network Supervisor] ⚠️ ALERT: Predicted {delay:.1f}hrs delay due to "
             f"{route_data['disruption_type']}! Initiating multi-agent negotiation."
         )
+
+        # 🤖 Gemini LLM: contextual disruption reasoning
+        carrier_id = state["current_carrier_id"]
+        carrier_info = CARRIER_DB.get(carrier_id, {})
+        llm_assessment = reason_about_disruption(route_data, prediction, carrier_info)
+        log.append(f"[Gemini 🤖] {llm_assessment}")
     else:
         state["disruption_detected"] = False
         log.append(f"[Network Supervisor] ✅ Route healthy. No intervention needed.")
@@ -253,6 +264,15 @@ def shipment_agent(state: AgentState) -> AgentState:
             f"${runner_up['quoted_price']:.2f}. Won due to better utility score."
         )
 
+    # 🤖 Gemini LLM: explain bid selection reasoning
+    llm_explanation = explain_bid_selection(
+        bids=bids,
+        chosen_bid=best,
+        budget=budget,
+        warehouse_status=state.get("warehouse_responses", []),
+    )
+    log.append(f"[Gemini 🤖] {llm_explanation}")
+
     return state
 
 
@@ -308,6 +328,14 @@ def learning_agent(state: AgentState) -> AgentState:
 
     state["reputation_updates"] = updates
     log.append(f"[Learning Agent] 💾 Outcome recorded. System memory updated.")
+
+    # 🤖 Gemini LLM: generate strategic learning insight
+    llm_insight = generate_learning_insight(
+        reputation_updates=updates,
+        outcome=state["outcome"],
+        negotiation_log=log,
+    )
+    log.append(f"[Gemini 🤖] {llm_insight}")
 
     return state
 
