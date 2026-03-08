@@ -19,11 +19,26 @@ import {
   Truck,
   Package,
   Shield,
+  Activity,
+  History,
+  Lock,
+  Globe2,
+  AlertTriangle,
+  FileCode2,
+  CloudRainWind,
+  MessageSquareCode,
+  Network
 } from "lucide-react";
+import LogisticsNetwork from "@/components/ui/LogisticsNetwork";
+import { InteractiveGlobe } from "@/components/ui/InteractiveGlobe";
+import { AgentNetworkDiagram } from "@/components/ui/AgentNetworkDiagram";
+import { TerminalAuditLog } from "@/components/ui/TerminalAuditLog";
 import { SplineScene } from "@/components/ui/SplineScene";
 import { GooeyText } from "@/components/ui/GooeyText";
 import { Spotlight } from "@/components/ui/Spotlight";
-import LogisticsNetwork from "@/components/ui/LogisticsNetwork";
+import { SparklesCore } from "@/components/ui/SparklesCore";
+import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
+import { WorkflowExplainer } from "@/components/ui/WorkflowExplainer";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -54,11 +69,22 @@ export default function PitchDeck() {
   };
 
   return (
-    <div
-      ref={scrollRef}
-      className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth w-full h-[calc(100vh-4rem)] hide-scrollbar"
-      style={{ scrollbarWidth: "none" }}
-    >
+    <>
+      <div className="fixed inset-0 -z-50 pointer-events-none bg-black">
+        <LogisticsNetwork />
+        <video
+          autoPlay loop muted playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-screen"
+          src="/bg-logistics.mp4"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/90" />
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="flex flex-col lg:flex-row overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto scroll-smooth w-full h-[calc(100dvh-4rem)] hide-scrollbar relative z-10"
+        style={{ scrollbarWidth: "none" }}
+      >
       <style dangerouslySetInnerHTML={{ __html: `
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         @keyframes float {
@@ -69,28 +95,24 @@ export default function PitchDeck() {
         .animate-float-delayed { animation: float 6s ease-in-out 2s infinite; }
       `}} />
 
-      {/* ═══════════════════ SLIDE 1: Hero ═══════════════════ */}
-      <section className="flex-none w-screen h-full snap-center relative flex items-center overflow-hidden">
-        {/* Animated logistics network background */}
-        <div className="absolute inset-0 -z-20">
-          <LogisticsNetwork />
+      {/* ═══════════════════ SLIDE 1: Hero & Problem ═══════════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[100vw] lg:h-full relative flex items-center py-16 lg:py-0 pr-0 lg:pr-24">
+        {/* Sparkles Background */}
+        <div className="absolute inset-0 w-full h-full -z-10 overflow-hidden">
+          <SparklesCore
+            background="transparent"
+            minSize={0.4}
+            maxSize={1}
+            particleDensity={30}
+            className="w-full h-full"
+            particleColor="#10b981" // subtle emerald sparkles
+          />
         </div>
-
-        {/* Deep dark vignette overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/80 -z-10" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,black_80%)] -z-10" />
 
         {/* Spotlight beam sweep */}
         <Spotlight className="-top-40 left-0 md:left-60 md:-top-20 z-[1]" fill="white" />
 
-        {/* Video background (optional) */}
-        <video
-          autoPlay loop muted playsInline
-          className="absolute inset-0 w-full h-full object-cover -z-25 opacity-15 mix-blend-screen"
-          src="/bg-logistics.mp4"
-        />
-
-        <div className="relative z-20 container mx-auto px-6 md:px-12">
+        <div className="relative z-20 container mx-auto px-6 md:px-12 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             {/* Left: Text content */}
             <motion.div
@@ -100,67 +122,46 @@ export default function PitchDeck() {
               variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
             >
               <motion.div custom={0} variants={fadeUp}>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold tracking-wider uppercase">
-                  <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                  Agentic AI for Logistics & Supply Chain
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-800/50 border border-neutral-700/50 text-neutral-400 text-xs font-semibold tracking-wider uppercase">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  The Problem: Supply Chains Are Reactive
                 </div>
               </motion.div>
 
               <motion.div custom={1} variants={fadeUp} className="mt-4">
-                <div className="h-[70px] md:h-[80px] w-full flex justify-start items-center overflow-visible">
+                <div className="h-auto w-full flex justify-start items-center overflow-visible">
                   <GooeyText
                     texts={["NeuroLogistics", "Self-Negotiating", "Autonomous Market"]}
                     morphTime={1.4}
                     cooldownTime={1.5}
-                    className="h-[70px] md:h-[80px]"
-                    textClassName="text-white text-4xl md:text-[4rem] font-black tracking-tighter h-[70px] md:h-[80px] leading-[70px] md:leading-[80px]"
+                    className="h-[60px] md:h-[80px]"
+                    textClassName="text-white text-3xl md:text-[4rem] font-black tracking-tighter leading-tight"
                   />
                 </div>
               </motion.div>
 
-              <motion.p custom={2} variants={fadeUp} className="text-lg text-neutral-400 max-w-xl leading-relaxed">
-                Supply chains fail from cascading micro-disruptions. Our AI agents don&apos;t just detect problems — they{" "}
-                <span className="text-cyan-400 font-semibold">negotiate solutions autonomously</span>.
+              <motion.p custom={2} variants={fadeUp} className="text-base md:text-lg text-neutral-400 max-w-xl leading-relaxed">
+                When a snowstorm hits or a truck breaks down, millions are lost in latency while humans manually scramble to call carriers and compare rates. We built an <span className="text-cyan-400 font-semibold">Autonomous Agentic Economy</span> that detects, negotiates, and resolves disruptions in sub-seconds.
               </motion.p>
 
               {/* Mini stats row */}
-              <motion.div custom={2.5} variants={fadeUp} className="flex gap-8 py-4 border-t border-white/[0.06]">
+              <motion.div custom={2.5} variants={fadeUp} className="flex flex-wrap gap-4 md:gap-8 py-4 border-t border-white/[0.06]">
                 {[
-                  { value: "5", label: "AI Agents" },
-                  { value: "< 2s", label: "Resolution" },
-                  { value: "100%", label: "Autonomous" },
+                  { value: "5", label: "Autonomous Agents" },
+                  { value: "< 2ms", label: "Resolve Latency" },
+                  { value: "100%", label: "Real Data Feeds" },
                 ].map((stat, i) => (
-                  <div key={i}>
-                    <p className="text-2xl font-black text-white">{stat.value}</p>
-                    <p className="text-[11px] text-neutral-500 uppercase tracking-wider">{stat.label}</p>
+                  <div key={i} className="min-w-[120px]">
+                    <p className="text-xl md:text-2xl font-black text-white">{stat.value}</p>
+                    <p className="text-[10px] md:text-[11px] text-neutral-500 uppercase tracking-wider">{stat.label}</p>
                   </div>
                 ))}
-              </motion.div>
-
-              <motion.div custom={3} variants={fadeUp} className="flex flex-wrap gap-4 pt-2">
-                <Link
-                  href="/dashboard"
-                  className="group relative flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-2xl font-semibold transition-all duration-300 hover:scale-[1.03] shadow-[0_0_40px_rgba(34,211,238,0.2)] hover:shadow-[0_0_60px_rgba(34,211,238,0.35)] overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <span className="relative z-10 flex items-center gap-2">
-                    <MousePointer2 className="w-5 h-5" />
-                    Launch Dashboard
-                  </span>
-                </Link>
-                <button
-                  onClick={scrollNext}
-                  className="group flex items-center gap-2 px-7 py-4 border border-white/10 text-neutral-300 rounded-2xl font-medium hover:border-white/25 hover:text-white transition-all duration-300 hover:scale-[1.03] backdrop-blur-sm bg-white/[0.02]"
-                >
-                  Explore Architecture
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
               </motion.div>
             </motion.div>
 
             {/* Right: 3D Robot */}
             <motion.div
-              className="relative h-[450px] lg:h-[550px] hidden lg:block"
+              className="relative h-[450px] lg:h-[550px] hidden lg:block lg:translate-x-12 xl:translate-x-20"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5, duration: 0.8 }}
@@ -180,196 +181,246 @@ export default function PitchDeck() {
 
         {/* Scroll indicator */}
         <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-neutral-600"
-          animate={{ y: [0, 8, 0] }}
+          className="hidden lg:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 text-neutral-600"
+          animate={{ x: [0, 12, 0] }}
           transition={{ repeat: Infinity, duration: 2 }}
         >
-          <span className="text-[10px] tracking-[0.3em] uppercase">Scroll</span>
-          <ChevronRight className="w-4 h-4 rotate-90" />
+          <span className="text-[10px] tracking-[0.3em] uppercase">Swipe To Explore</span>
+          <ArrowRight className="w-4 h-4" />
         </motion.div>
       </section>
 
-      {/* ═══════════════════ SLIDE 2: Architecture ═══════════════════ */}
-      <section className="flex-none w-screen h-full snap-center relative flex items-center justify-center p-8 overflow-hidden">
-        <div className="absolute inset-0 bg-black -z-20" />
-        <div className="absolute inset-0 -z-10">
-          <LogisticsNetwork />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-black/80 -z-5" />
-
-        <div className="max-w-6xl w-full relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold tracking-wider uppercase">
-                <Share2 className="w-3 h-3" /> Multi-Agent Architecture
-              </div>
-              <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent leading-tight">
-                Not a monolithic bot. <br />An intelligent economy.
-              </h2>
-              <p className="text-neutral-400 leading-relaxed">
-                A 5-node LangGraph state machine where agents have competing utility functions. Shipments want cheap/fast delivery. Carriers want maximum profit. They negotiate.
-              </p>
-              <div className="space-y-3">
-                {[
-                  { title: "Observer Agent", desc: "Polls real-time Open-Meteo weather data via MCP.", icon: "🔍" },
-                  { title: "Shipment Agent", desc: "Calculates utility across multiple carrier bids.", icon: "📦" },
-                  { title: "Carrier Agents", desc: "Dynamic pricing based on weather/traffic severity.", icon: "🚛" },
-                  { title: "Learning Agent", desc: "Updates pgvector Reputation DB. Penalizes bad actors.", icon: "🧠" },
-                ].map((item, i) => (
-                  <div key={i} className="flex gap-4 items-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-emerald-500/30 hover:bg-emerald-500/[0.03] transition-all duration-300 group">
-                    <span className="text-xl">{item.icon}</span>
-                    <div>
-                      <h4 className="font-bold text-neutral-200 text-sm">{item.title}</h4>
-                      <p className="text-xs text-neutral-500">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+      {/* ═══════════════════ SLIDE 2: Multi-Agent Architecture ═══════════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
+        <div className="max-w-7xl w-full relative z-10 flex flex-col lg:flex-row gap-12 items-center">
+          <div className="space-y-6 flex-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold tracking-wider uppercase">
+              <Share2 className="w-3 h-3" /> LangGraph Multi-Agent Economy
             </div>
-
-            <div className="bg-black/60 border border-white/[0.06] rounded-3xl p-8 relative overflow-hidden backdrop-blur-2xl group">
-              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[80px]" />
-              <h3 className="text-2xl font-bold mb-6 relative z-10">The O.R.D.A.L Loop</h3>
-              <ul className="space-y-0 relative z-10">
-                {[
-                  { phase: "Observe", detail: "ML Predictor + Live APIs", color: "bg-blue-500" },
-                  { phase: "Reason", detail: "Calculate Delay Risk", color: "bg-purple-500" },
-                  { phase: "Decide", detail: "Multi-Agent Bidding (RFQ)", color: "bg-cyan-500" },
-                  { phase: "Act", detail: "Reroute & Update DB", color: "bg-rose-500" },
-                  { phase: "Learn", detail: "Adjust Trust Scoring", color: "bg-amber-500" },
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-4 py-4 border-b border-white/[0.04] last:border-0 group/item hover:pl-2 transition-all">
-                    <div className={`w-2.5 h-2.5 rounded-full ${item.color} shadow-[0_0_10px_currentColor]`} />
-                    <span className="font-bold text-sm text-neutral-200 w-20">{item.phase}</span>
-                    <span className="text-xs text-neutral-500 font-mono">{item.detail}</span>
-                  </li>
-                ))}
-              </ul>
+            <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent leading-tight">
+              Not a monolithic bot. <br />We built a free market.
+            </h2>
+            <p className="text-neutral-400 leading-relaxed text-sm md:text-base max-w-xl">
+              Using the latest LangGraph state machine, we designed 5 distinct AI nodes with competing utility functions. The Shipment Agent wants cheap/fast delivery. The Carrier Agents want maximum profit. They negotiate against each other using Game Theory.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
+              {[
+                { title: "Network Supervisor", desc: "Polls live weather/traffic. Calculates risk via ML.", icon: <Brain className="w-5 h-5 text-blue-400"/> },
+                { title: "Carrier Agents", desc: "Dynamic pricing via real Karrio FedEx/UPS APIs.", icon: <Truck className="w-5 h-5 text-cyan-400"/> },
+                { title: "Warehouse Agent", desc: "Monitors real-time capacity and port congestion.", icon: <Database className="w-5 h-5 text-purple-400"/> },
+                { title: "Shipment Agent", desc: "Utility-based bid selection (Cost vs ETA).", icon: <Package className="w-5 h-5 text-emerald-400"/> },
+              ].map((item, i) => (
+                <div key={i} className="flex gap-4 items-start p-4 rounded-2xl bg-black/40 backdrop-blur-md border border-white/[0.06] hover:border-emerald-500/30 hover:bg-emerald-500/[0.03] transition-all duration-300 group">
+                  <div className="mt-0.5 p-2 bg-white/[0.04] rounded-lg border border-white/[0.04]">{item.icon}</div>
+                  <div>
+                    <h4 className="font-bold text-neutral-200 text-sm mb-1">{item.title}</h4>
+                    <p className="text-xs text-neutral-500 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
 
-        <button onClick={scrollNext} className="absolute bottom-8 right-12 flex items-center gap-2 text-neutral-600 hover:text-white transition-colors group">
-          <span className="text-[10px] tracking-[0.3em] uppercase font-mono">Tech Stack</span>
-          <ChevronRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
-        </button>
+          <div className="flex-1 w-full max-w-[500px]">
+             <AgentNetworkDiagram />
+          </div>
+        </div>
       </section>
 
-      {/* ═══════════════════ SLIDE 3: Tech Stack ═══════════════════ */}
-      <section className="flex-none w-screen h-full snap-center relative flex items-center justify-center p-8 overflow-hidden">
-        <div className="absolute inset-0 bg-black -z-20" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent -z-10" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-cyan-900/15 via-transparent to-transparent -z-10" />
-
+      {/* ═══════════════════ SLIDE 3: Execution & Real Data ═══════════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
         <motion.div
-          className="flex flex-col items-center text-center max-w-5xl mx-auto"
+          className="flex flex-col w-full max-w-6xl mx-auto"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
         >
-          <motion.div variants={fadeUp} custom={0} className="mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-semibold tracking-wider uppercase mb-6">
-              <Database className="w-3 h-3" /> Open Source Powered
-            </div>
-            <h2 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-              Production-Grade Stack
-            </h2>
-            <p className="text-lg text-neutral-500 mt-4 max-w-2xl mx-auto">
-              Every component is open-source, battle-tested, and enterprise-ready.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
-            {[
-              { label: "LangGraph", desc: "Agent Orchestration", icon: GitBranch, accent: "from-emerald-500/20 to-transparent" },
-              { label: "pgvector", desc: "Vector DB + Memory", icon: Database, accent: "from-purple-500/20 to-transparent" },
-              { label: "MCP", desc: "Secure Tool Calling", icon: Shield, accent: "from-blue-500/20 to-transparent" },
-              { label: "Open-Meteo", desc: "Live Weather API", icon: Radio, accent: "from-cyan-500/20 to-transparent" },
-              { label: "Scikit-Learn", desc: "ML Predictor", icon: Brain, accent: "from-rose-500/20 to-transparent" },
-              { label: "FastAPI", desc: "High-Perf Backend", icon: Zap, accent: "from-amber-500/20 to-transparent" },
-              { label: "Next.js", desc: "React Frontend", icon: Cpu, accent: "from-indigo-500/20 to-transparent" },
-              { label: "React Flow", desc: "Workflow Viz", icon: Share2, accent: "from-teal-500/20 to-transparent" },
-            ].map((tech, i) => (
-              <motion.div
-                key={i}
-                custom={i}
-                variants={cardVariants}
-                className="relative bg-white/[0.02] border border-white/[0.06] p-5 rounded-2xl flex flex-col items-center justify-center text-center hover:border-white/[0.12] hover:bg-white/[0.04] transition-all duration-500 group overflow-hidden"
-              >
-                <div className={`absolute inset-0 bg-gradient-to-b ${tech.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                <tech.icon className="w-6 h-6 text-neutral-500 group-hover:text-white mb-3 transition-colors relative z-10" />
-                <span className="font-bold text-neutral-200 mb-0.5 group-hover:text-white transition-colors relative z-10 text-sm">{tech.label}</span>
-                <span className="text-[10px] text-neutral-600 uppercase tracking-widest leading-tight relative z-10">{tech.desc}</span>
-              </motion.div>
-            ))}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-10 w-full">
+            <motion.div variants={fadeUp} custom={0} className="w-full">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold tracking-wider uppercase mb-6">
+                <Globe2 className="w-3 h-3" /> Real-World Integrations
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                No mock toys. Real APIs.
+              </h2>
+              <p className="text-lg text-neutral-400 mt-4 leading-relaxed max-w-xl">
+                Hackathons are full of simple LLM wrappers. We integrated actual supply chain software and domain grounding to prove this handles real enterprise loads.
+              </p>
+            </motion.div>
+            <motion.div variants={fadeUp} custom={1} className="w-full max-w-[400px] mx-auto lg:max-w-none flex justify-center lg:justify-end mt-8 lg:mt-0">
+                <InteractiveGlobe />
+            </motion.div>
           </div>
         </motion.div>
-
-        <button onClick={scrollNext} className="absolute bottom-8 right-12 flex items-center gap-2 text-neutral-600 hover:text-white transition-colors group">
-          <span className="text-[10px] tracking-[0.3em] uppercase font-mono">Demo Guide</span>
-          <ChevronRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
-        </button>
       </section>
 
-      {/* ═══════════════════ SLIDE 4: Demo Guide ═══════════════════ */}
-      <section className="flex-none w-screen h-full snap-center relative flex items-center justify-center p-8 overflow-hidden">
-        <div className="absolute inset-0 bg-black -z-20" />
-        <div className="absolute inset-0 -z-10">
-          <LogisticsNetwork />
-        </div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,black_75%)] -z-5" />
+      {/* ═══════════════════ SLIDE 3B: Bento Grid Stack ═══════════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
+        <motion.div
+          className="flex flex-col w-full max-w-6xl mx-auto"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        >
+          <motion.div variants={fadeUp} className="text-center mb-10 max-w-2xl mx-auto">
+              <h2 className="text-4xl md:text-5xl font-black text-white">
+                Powered by a serious stack.
+              </h2>
+          </motion.div>
 
+          <motion.div variants={fadeUp} className="w-full">
+            <BentoGrid className="lg:grid-rows-2">
+            {[
+              { 
+                name: "FedEx/UPS Live Rates", 
+                description: "Integrated Karrio SDK. Agents pull real estimates instead of guessing.", 
+                Icon: Truck, 
+                href: "/dashboard",
+                cta: "See Agents",
+                background: <img src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=2000&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-50" alt="shipping containers" />,
+                className: "lg:col-start-1 lg:col-end-2 lg:row-start-1 lg:row-end-3" 
+              },
+              { 
+                name: "Domain Fine-Tuning", 
+                description: "A 1,500+ character logistics system prompt injected via Gemini 2.0.", 
+                Icon: FileCode2,
+                href: "/dashboard",
+                cta: "View Prompts", 
+                background: <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2000&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-50" alt="ai processor" />,
+                className: "lg:col-start-2 lg:col-end-4 lg:row-start-1 lg:row-end-2" 
+              },
+              { 
+                name: "Fleetbase Integration", 
+                description: "REST client querying actual fleet positioning data and capacity.", 
+                Icon: Map,
+                href: "/dashboard",
+                cta: "Track Fleet", 
+                background: <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2000&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-50" alt="map navigation" />,
+                className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3" 
+              },
+              { 
+                name: "WebSockets", 
+                description: "FastAPI WebSocket routes broadcast every negotiation in milliseconds.", 
+                Icon: Zap,
+                href: "/dashboard",
+                cta: "View Feed", 
+                background: <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2000&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-50" alt="network connections" />,
+                className: "lg:col-start-3 lg:col-end-4 lg:row-start-2 lg:row-end-3" 
+              },
+            ].map((tech, i) => (
+              <BentoCard
+                key={i}
+                {...tech}
+              />
+            ))}
+          </BentoGrid>
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ═══════════════════ SLIDE 4: Enterprise Safety ═══════════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
+        <motion.div 
+          className="max-w-7xl w-full flex flex-col lg:flex-row gap-12 items-center relative z-10"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
+        >
+            <motion.div variants={fadeUp} className="flex-1 w-full space-y-6 order-2 lg:order-1">
+                <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-black/40 backdrop-blur-xl border border-purple-500/30 p-6 rounded-3xl relative overflow-hidden shadow-[0_0_30px_rgba(168,85,247,0.1)] group hover:border-purple-500/50 transition-colors">
+                        <div className="absolute -right-10 -top-10 w-32 h-32 bg-purple-500/20 blur-[50px] rounded-full group-hover:bg-purple-500/30 transition-colors" />
+                        <Shield className="w-8 h-8 text-purple-400 mb-4" />
+                        <h3 className="text-xl font-bold text-white mb-2">Human-in-the-Loop Guardrails</h3>
+                        <p className="text-sm text-neutral-400 leading-relaxed">AI shouldn't have a blank check. If a reroute costs {'<'} $500, the agents execute it instantly. Above $1,000 algorithms immediately halt the process and escalate to a human dispatcher.</p>
+                    </div>
+                    
+                    <div className="bg-black/40 backdrop-blur-xl border border-rose-500/30 p-6 rounded-3xl relative overflow-hidden shadow-[0_0_30px_rgba(244,63,94,0.1)] group hover:border-rose-500/50 transition-colors">
+                        <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-rose-500/20 blur-[50px] rounded-full group-hover:bg-rose-500/30 transition-colors" />
+                        <div className="flex items-center gap-4 mb-4 relative z-10">
+                            <History className="w-8 h-8 text-rose-400" />
+                            <div>
+                                <h3 className="text-xl font-bold text-white">Event Sourcing Audit Trail</h3>
+                                <p className="text-xs text-neutral-400">Zero black box AI. Frame-by-frame replay.</p>
+                            </div>
+                        </div>
+                        <div className="relative z-10">
+                            <TerminalAuditLog />
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+
+            <motion.div variants={fadeUp} className="flex-1 space-y-6 order-1 lg:order-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-semibold tracking-wider uppercase">
+                <Lock className="w-3 h-3" /> Enterprise Ready AI
+                </div>
+                <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text text-transparent leading-tight">
+                Built for safety.<br />Designed for scale.
+                </h2>
+                <p className="text-neutral-400 leading-relaxed text-sm md:text-base max-w-xl">
+                We anticipated the major critiques of LLM orchestration: "How do you audit it?" and "What if it spends too much?". Our architecture specifically features rollbacks, strict guardrail thresholds, and mathematical reputation penalization via pgvector databases.
+                </p>
+            </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ═══════════════════ SLIDE 5: 3D Workflow Explainer ═══════════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
+        <motion.div 
+          className="max-w-7xl w-full flex flex-col items-center relative z-10 space-y-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
+        >
+            <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wider uppercase mb-4">
+                  <Network className="w-3 h-3" /> Architecture Flow
+                </div>
+                <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent leading-tight">
+                  The End-to-End Autonomous Lifecycle
+                </h2>
+                <p className="text-neutral-400 mt-4">Follow the path of a disruption from detection to autonomous resolution.</p>
+            </motion.div>
+            
+            <motion.div variants={fadeUp} className="w-full">
+                <WorkflowExplainer />
+            </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ═══════════════════ SLIDE 6: Demo Guide CTA ═══════════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
         <div className="w-full flex flex-col justify-center max-w-5xl mx-auto space-y-8 relative z-10">
           <div className="text-center mb-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold tracking-wider uppercase mb-6">
-              <Target className="w-3 h-3" /> Hackathon Demo
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold tracking-wider uppercase mb-6">
+              <Target className="w-3 h-3" /> Impact
             </div>
-            <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-rose-400 via-orange-400 to-amber-400 bg-clip-text text-transparent mb-4">
-              Demo Walkthrough
+            <h2 className="text-4xl md:text-6xl font-black bg-gradient-to-b from-white to-neutral-500 bg-clip-text text-transparent mb-4 tracking-tight">
+              Experience The Future
             </h2>
-            <p className="text-neutral-500">Follow these 4 screens to blow the judges&apos; minds.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-            {[
-              { icon: Map, color: "cyan", borderColor: "hover:border-cyan-500/40", iconColor: "text-cyan-400", glowColor: "from-cyan-500/10", title: "1. Control Tower", desc: "Start here. The killer feature is the Agent Market Feed terminal — proving agents negotiate live." },
-              { icon: Radio, color: "rose", borderColor: "hover:border-rose-500/40", iconColor: "text-rose-400", glowColor: "from-rose-500/10", title: "2. Anomaly Simulator", desc: "Hit the Chaos Panel. Inject a Snowstorm. Watch the ML Predictor gauge jump to CRITICAL risk." },
-              { icon: GitBranch, color: "purple", borderColor: "hover:border-purple-500/40", iconColor: "text-purple-400", glowColor: "from-purple-500/10", title: "3. Workflow Visualizer", desc: 'Show the "brain." Click Simulate Flow to watch the LangGraph state machine light up.' },
-              { icon: BarChart3, color: "emerald", borderColor: "hover:border-emerald-500/40", iconColor: "text-emerald-400", glowColor: "from-emerald-500/10", title: "4. Analytics", desc: "End here. Prove the bad carrier lost 15% trust. The system learns and adapts." },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className={`bg-black/40 backdrop-blur-xl border border-white/[0.06] p-6 rounded-2xl relative overflow-hidden group ${item.borderColor} transition-all duration-300`}
-              >
-                <div className={`absolute inset-0 bg-gradient-to-br ${item.glowColor} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={`w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center`}>
-                      <item.icon className={`w-5 h-5 ${item.iconColor}`} />
-                    </div>
-                    <h3 className="text-lg font-bold text-white">{item.title}</h3>
-                  </div>
-                  <p className="text-neutral-400 text-sm leading-relaxed">{item.desc}</p>
-                </div>
-              </div>
-            ))}
+            <p className="text-neutral-400 text-lg">Click the button below to launch the live 3D Control Tower and initiate an AI negotiation.</p>
           </div>
 
           <div className="flex justify-center mt-6 relative z-50">
             <Link
               href="/dashboard"
-              className="group relative bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 text-white px-10 py-4 rounded-full font-bold text-lg transition-all hover:scale-[1.03] flex items-center gap-3 shadow-[0_0_50px_rgba(34,211,238,0.2)] hover:shadow-[0_0_70px_rgba(34,211,238,0.35)] overflow-hidden"
+              className="group relative bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 text-white px-12 py-5 rounded-full font-black text-xl transition-all hover:scale-[1.03] flex items-center gap-3 shadow-[0_0_50px_rgba(34,211,238,0.3)] hover:shadow-[0_0_80px_rgba(34,211,238,0.5)] overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-400 to-violet-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
               <span className="relative z-10 flex items-center gap-3">
-                <MousePointer2 className="w-6 h-6" /> Launch Dashboard
+                <MousePointer2 className="w-6 h-6" /> Launch Control Tower
               </span>
             </Link>
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

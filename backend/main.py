@@ -9,6 +9,7 @@ import uvicorn
 import uuid
 import asyncio
 import json
+import time
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
@@ -22,7 +23,7 @@ from tools import (
     set_disruption_override, clear_disruption_overrides,
     fetch_live_weather, weather_to_severity, _get_coords,
 )
-from event_store import event_store
+from event_store import event_store, EventType
 from ws_manager import ws_manager
 from carrier_rates import get_karrio_status
 from fleetbase_client import get_fleetbase_status
@@ -270,6 +271,19 @@ def clear_disruptions():
 
 
 # --- Screen 3: Agent Workflow ---
+
+# IMPORTANT: /all must come before /{shipment_id} to avoid path capture
+@app.post("/api/negotiate/all")
+def negotiate_all_at_risk():
+    """Runs negotiation for all shipments currently DELAYED or IN_TRANSIT."""
+    results = []
+    for sid, s in db["shipments"].items():
+        if s.status in [ShipmentStatus.IN_TRANSIT, ShipmentStatus.DELAYED]:
+            result = trigger_negotiation(sid)
+            results.append(result)
+    return {"total": len(results), "results": results}
+
+
 @app.post("/api/negotiate/{shipment_id}")
 def trigger_negotiation(shipment_id: str):
     """Triggers the full multi-agent negotiation for a specific shipment."""
@@ -324,15 +338,72 @@ def trigger_negotiation(shipment_id: str):
     }
 
 
-@app.post("/api/negotiate/all")
-def negotiate_all_at_risk():
-    """Runs negotiation for all shipments currently DELAYED or IN_TRANSIT."""
-    results = []
+# --- One-Click Demo Endpoint ---
+@app.post("/api/demo/simulate")
+def demo_simulate():
+    """
+    One-click full demo: clears old state, injects a snowstorm disruption,
+    runs the complete LangGraph negotiation pipeline, and returns all logs + results.
+    Designed for the Workflow page's 'Simulate Flow' button.
+    """
+    # 1. Reset: clear old disruptions and restore carrier reliability
+    db["disruptions"].clear()
+    clear_disruption_overrides()
+    for cid in CARRIER_DB:
+        if cid in db["carriers"]:
+            db["carriers"][cid].reliability_score = CARRIER_DB[cid]["reliability"]
+
+    # 2. Reset shipment statuses back to IN_TRANSIT
     for sid, s in db["shipments"].items():
-        if s.status in [ShipmentStatus.IN_TRANSIT, ShipmentStatus.DELAYED]:
-            result = trigger_negotiation(sid)
-            results.append(result)
-    return {"total": len(results), "results": results}
+        if s.status in [ShipmentStatus.REROUTED, ShipmentStatus.DELAYED]:
+            s.status = ShipmentStatus.IN_TRANSIT
+            db["shipments"][sid] = s
+
+    # 3. Pick the first IN_TRANSIT shipment
+    target_shipment = None
+    for sid, s in db["shipments"].items():
+        if s.status == ShipmentStatus.IN_TRANSIT:
+            target_shipment = s
+            break
+
+    if not target_shipment:
+        raise HTTPException(status_code=400, detail="No IN_TRANSIT shipments available")
+
+    # 4. Inject a severe snowstorm disruption
+    disruption = Disruption(
+        entity_id=target_shipment.current_carrier_id,
+        type=DisruptionType.SNOWSTORM,
+        severity=0.9,
+        affected_region="North India",
+    )
+    disrupt_result = inject_disruption(disruption)
+
+    # 5. Run the full negotiation
+    neg_result = trigger_negotiation(target_shipment.id)
+
+    # 6. Build the combined response
+    negotiation_data = neg_result.get("negotiation", {}) if isinstance(neg_result, dict) else {}
+    result_data = neg_result.get("result", {}) if isinstance(neg_result, dict) else {}
+
+    return {
+        "status": "demo_complete",
+        "shipment_id": target_shipment.id,
+        "shipment_route": f"{target_shipment.source} → {target_shipment.destination}",
+        "disruption": {
+            "type": "SNOWSTORM",
+            "severity": 0.9,
+            "affected_carrier": target_shipment.current_carrier_id,
+            "affected_shipments": disrupt_result.get("affected_shipments", []),
+        },
+        "negotiation_log": result_data.get("negotiation_log", negotiation_data.get("log", [])),
+        "outcome": result_data.get("outcome", negotiation_data.get("outcome", "UNKNOWN")),
+        "chosen_carrier_id": result_data.get("chosen_carrier_id", ""),
+        "final_cost": result_data.get("final_cost", 0),
+        "delay_prediction": result_data.get("delay_prediction", {}),
+        "bids": result_data.get("bids", []),
+        "guardrail_result": result_data.get("guardrail_result", {}),
+        "reputation_updates": result_data.get("reputation_updates", []),
+    }
 
 
 @app.get("/api/negotiations")
@@ -480,6 +551,52 @@ async def get_guardrail_policy():
             "ESCALATE": f"Cost > ${GuardrailPolicy.COST_RECOMMEND_LIMIT:.0f}, delay > {GuardrailPolicy.DELAY_ESCALATE_LIMIT}hrs, or repeat failure",
         },
     }
+
+@app.post("/api/slack/interactive")
+async def slack_interactive_endpoint(request: Request):
+    """
+    Webhook endpoint for Slack Block Kit interactive buttons.
+    When a human clicks 'Approve' in Slack, Slack POSTs to this endpoint.
+    This overrides the ESCALATE guardrail and executes the reroute.
+    """
+    # In a real Slack app, form data is sent as application/x-www-form-urlencoded
+    # payload = form_data.get("payload") -> parse JSON
+    # For now (simulation), we accept the payload as raw JSON or extract shipment_id directly.
+    try:
+        body = await request.json()
+        action_value = body.get("actions", [{}])[0].get("value", "")
+        # value expected as: "approve_SHP001"
+        action, shipment_id = action_value.split("_", 1)
+    except:
+        # Fallback for simple testing
+        shipment_id = "mock_shipment"
+        action = "approve"
+
+    if action != "approve":
+        return {"status": "success", "message": "Ignored or Rejected."}
+
+    if shipment_id not in db["shipments"]:
+        # Don't throw for Slack, just return standard 200 message
+        return JSONResponse(content={"text": "Shipment not found."}, status_code=200)
+
+    shipment = db["shipments"][shipment_id]
+
+    shipment["status"] = "REROUTED"
+    
+    msg = f"✅ [Slack Automation] Human Ops Manager approved escalation for Shipment {shipment_id}."
+    event_store.append(
+        negotiation_id=f"neg_{int(time.time())}",
+        shipment_id=shipment_id,
+        agent_name="Slack Interactive Webhook",
+        event_type=EventType.NEGOTIATION_COMPLETED,
+        payload={"action": "human_override", "status": "approved"}
+    )
+    db["events"].append(msg)
+    
+    if redis_client.redis:
+        redis_client.publish_agent_event("Slack API", msg, "SUCCESS")
+        
+    return JSONResponse(content={"text": f"✅ Escalation approved for {shipment_id}"})
 
 # ─── WebSocket Real-Time Feed ───
 

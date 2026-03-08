@@ -27,6 +27,21 @@ from decision_tracker import tracker as decision_tracker
 from rollback import rollback_manager
 from database import persist_reputation_update, persist_decision, persist_negotiation
 from redis_client import publish_agent_event
+import automation_engine
+import asyncio
+import threading
+
+
+def _fire_and_forget(coro):
+    """Run an async coroutine from a synchronous context (LangGraph nodes run in thread pools)."""
+    def _run():
+        try:
+            asyncio.run(coro)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Background task failed: {e}")
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
 
 
 # ─── State Definition ───
@@ -141,6 +156,16 @@ def network_supervisor(state: AgentState) -> AgentState:
             f"[Network Supervisor] ⚠️ ALERT: Predicted {delay:.1f}hrs delay due to "
             f"{route_data['disruption_type']}! Initiating multi-agent negotiation."
         )
+
+        # Trigger Native Twilio SMS Alert if risk is CRITICAL
+        if risk == "CRITICAL":
+            _fire_and_forget(
+                automation_engine.trigger_sms_alert(
+                    shipment_id=state["shipment_id"],
+                    risk_level=risk,
+                    cause=route_data["disruption_type"]
+                )
+            )
 
         # 🤖 Gemini LLM: contextual disruption reasoning
         carrier_id = state["current_carrier_id"]
@@ -350,6 +375,24 @@ def shipment_agent(state: AgentState) -> AgentState:
             f"[Shipment {state['shipment_id']}] 🚨 Action blocked by guardrails. "
             f"Human approval needed for ${best['quoted_price']:.2f} reroute."
         )
+        
+        # Trigger Native Slack Escalation
+        _fire_and_forget(
+            automation_engine.trigger_slack_escalation(
+                shipment_id=state["shipment_id"],
+                cost=best["quoted_price"],
+                delay=prediction.get("predicted_delay_hours", 0),
+                reason=guardrail["reason"],
+                alternatives=[
+                    {
+                        "carrier": b.get("carrier_name", b["carrier_id"]), 
+                        "cost": b["quoted_price"], 
+                        "eta": b["estimated_delivery_hours"]
+                    } for b in valid_bids[:3]
+                ]
+            )
+        )
+        
         decision_tracker.record_decision(
             decision_id=decision_id,
             shipment_id=state["shipment_id"],
@@ -426,6 +469,16 @@ def shipment_agent(state: AgentState) -> AgentState:
         new_cost=best["quoted_price"],
     )
     log.append(f"[Rollback 🔄] Pre-action snapshot saved. Rollback available for decision {decision_id}.")
+
+    # Trigger Native Automated PDF Dispatch
+    _fire_and_forget(
+        automation_engine.trigger_pdf_dispatch(
+            shipment_id=state["shipment_id"],
+            carrier_name=best.get("carrier_name", best["carrier_id"]),
+            final_cost=best["quoted_price"],
+            new_eta=f"{best['estimated_delivery_hours']} hours"
+        )
+    )
 
     return state
 
