@@ -39,6 +39,12 @@ import {
   Layers,
   ArrowDownUp,
   CircleDot,
+  MessageSquareCode,
+  Search,
+  Coins,
+  Users,
+  Swords,
+  X,
 } from "lucide-react";
 import LogisticsNetwork from "@/components/ui/LogisticsNetwork";
 import { InteractiveGlobe } from "@/components/ui/InteractiveGlobe";
@@ -738,7 +744,276 @@ export default function PitchDeck() {
         </motion.div>
       </section>
 
-      {/* ═══════════════ SLIDE 10: Demo CTA ═══════════════ */}
+      {/* ═══════════════ SLIDE 10: Meet The Agents — Deep Dive ═══════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[100vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-12 py-16 lg:py-0">
+        <motion.div
+          className="max-w-7xl w-full relative z-10 space-y-6"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        >
+          <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold tracking-wider uppercase mb-3">
+              <Users className="w-3 h-3" /> Meet the AI Agents
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent leading-tight">
+              5 Agents. 5 Roles. One Mission.
+            </h2>
+          </motion.div>
+
+          <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            {/* Agent 1 */}
+            <div className="bg-black/50 backdrop-blur-xl border border-rose-500/20 rounded-2xl p-4 relative overflow-hidden group hover:border-rose-500/40 transition-all">
+              <div className="absolute -right-8 -top-8 w-24 h-24 bg-rose-500/10 blur-[40px] rounded-full group-hover:bg-rose-500/20 transition-colors" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                    <Search className="w-5 h-5 text-rose-400" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-rose-400 font-bold tracking-widest uppercase">Agent 1</p>
+                    <h4 className="text-sm font-bold text-white">Supervisor</h4>
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-400 leading-relaxed mb-3">Continuously monitors routes. Calls <span className="text-rose-300 font-semibold">Open-Meteo</span> + <span className="text-rose-300 font-semibold">TomTom</span> APIs, feeds data into the ML model.</p>
+                <div className="space-y-1.5 text-[10px]">
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-rose-400 shrink-0" /><span className="text-neutral-500">Predicts delay via Random Forest</span></div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-rose-400 shrink-0" /><span className="text-neutral-500">Triggers alarm if delay {'>'}2hrs</span></div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-rose-400 shrink-0" /><span className="text-neutral-500">Sends Twilio SMS on CRITICAL</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Agent 2 */}
+            <div className="bg-black/50 backdrop-blur-xl border border-cyan-500/20 rounded-2xl p-4 relative overflow-hidden group hover:border-cyan-500/40 transition-all">
+              <div className="absolute -right-8 -top-8 w-24 h-24 bg-cyan-500/10 blur-[40px] rounded-full group-hover:bg-cyan-500/20 transition-colors" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+                    <Coins className="w-5 h-5 text-cyan-400" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-cyan-400 font-bold tracking-widest uppercase">Agent 2</p>
+                    <h4 className="text-sm font-bold text-white">Carriers (×5)</h4>
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-400 leading-relaxed mb-3">Compete in a <span className="text-cyan-300 font-semibold">sealed-bid auction</span>. Each checks fleet via <span className="text-cyan-300 font-semibold">Fleetbase</span>, calculates dynamic price.</p>
+                <div className="space-y-1.5 text-[10px]">
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-cyan-400 shrink-0" /><span className="text-neutral-500">Dynamic pricing (weather × distance)</span></div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-cyan-400 shrink-0" /><span className="text-neutral-500">Failing carrier excluded from bids</span></div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-cyan-400 shrink-0" /><span className="text-neutral-500">Real Karrio SDK rate lookups</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Agent 3 */}
+            <div className="bg-black/50 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-4 relative overflow-hidden group hover:border-purple-500/40 transition-all">
+              <div className="absolute -right-8 -top-8 w-24 h-24 bg-purple-500/10 blur-[40px] rounded-full group-hover:bg-purple-500/20 transition-colors" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                    <Database className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-purple-400 font-bold tracking-widest uppercase">Agent 3</p>
+                    <h4 className="text-sm font-bold text-white">Warehouse</h4>
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-400 leading-relaxed mb-3">Checks destination hub <span className="text-purple-300 font-semibold">capacity + congestion</span>. Can reject reroutes to prevent cascading failures.</p>
+                <div className="space-y-1.5 text-[10px]">
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-purple-400 shrink-0" /><span className="text-neutral-500">Occupancy % monitoring</span></div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-purple-400 shrink-0" /><span className="text-neutral-500">Blocks if hub {'>'} 90% full</span></div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-purple-400 shrink-0" /><span className="text-neutral-500">Recommends alternate hubs</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Agent 4 */}
+            <div className="bg-black/50 backdrop-blur-xl border border-emerald-500/20 rounded-2xl p-4 relative overflow-hidden group hover:border-emerald-500/40 transition-all">
+              <div className="absolute -right-8 -top-8 w-24 h-24 bg-emerald-500/10 blur-[40px] rounded-full group-hover:bg-emerald-500/20 transition-colors" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <Shield className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-emerald-400 font-bold tracking-widest uppercase">Agent 4</p>
+                    <h4 className="text-sm font-bold text-white">Shipment</h4>
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-400 leading-relaxed mb-3">Picks best bid via <span className="text-emerald-300 font-semibold">utility function</span>. Enforces <span className="text-emerald-300 font-semibold">3-tier guardrails</span> before execution.</p>
+                <div className="space-y-1.5 text-[10px]">
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" /><span className="text-neutral-500">price + time − reliability score</span></div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" /><span className="text-neutral-500">AUTONOMOUS / ESCALATE guardrail</span></div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" /><span className="text-neutral-500">Generates PDF + Slack alert</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Agent 5 */}
+            <div className="bg-black/50 backdrop-blur-xl border border-amber-500/20 rounded-2xl p-4 relative overflow-hidden group hover:border-amber-500/40 transition-all">
+              <div className="absolute -right-8 -top-8 w-24 h-24 bg-amber-500/10 blur-[40px] rounded-full group-hover:bg-amber-500/20 transition-colors" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <Brain className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-amber-400 font-bold tracking-widest uppercase">Agent 5</p>
+                    <h4 className="text-sm font-bold text-white">Learning</h4>
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-400 leading-relaxed mb-3">Updates <span className="text-amber-300 font-semibold">carrier reputation</span> after every cycle. Bad carriers get priced out automatically.</p>
+                <div className="space-y-1.5 text-[10px]">
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-amber-400 shrink-0" /><span className="text-neutral-500">Penalizes failing carrier (−15%)</span></div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-amber-400 shrink-0" /><span className="text-neutral-500">Rewards winning carrier (+1%)</span></div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-amber-400 shrink-0" /><span className="text-neutral-500">Gemini writes strategic insight</span></div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Flow Diagram */}
+          <motion.div variants={fadeUp} className="bg-black/30 backdrop-blur-md border border-white/[0.06] rounded-xl p-4">
+            <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold">
+              <span className="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400">🔍 Supervisor</span>
+              <ArrowRight className="w-4 h-4 text-neutral-600" />
+              <div className="flex items-center gap-1.5">
+                <span className="px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">💰 Carriers</span>
+                <span className="text-neutral-600 text-[9px]">+</span>
+                <span className="px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400">🏭 Warehouse</span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-neutral-600" />
+              <span className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">📦 Shipment</span>
+              <ArrowRight className="w-4 h-4 text-neutral-600" />
+              <span className="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">🧠 Learning</span>
+              <span className="text-neutral-600 text-[9px] px-2">Orchestrated by</span>
+              <span className="px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white">LangGraph</span>
+            </div>
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ═══════════════ SLIDE 11: Why Not Just Hardcode? ═══════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[100vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-12 py-16 lg:py-0">
+        <motion.div
+          className="max-w-6xl w-full relative z-10 space-y-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        >
+          <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold tracking-wider uppercase mb-3">
+              <Swords className="w-3 h-3" /> The Hard Question
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black bg-gradient-to-r from-rose-400 via-orange-400 to-amber-400 bg-clip-text text-transparent leading-tight">
+              {"\"Can't this all be hardcoded?\""}
+            </h2>
+            <p className="text-neutral-400 mt-3 max-w-lg mx-auto text-sm">Parts of it can — and we did. But here are the 5 things that <span className="text-white font-semibold">cannot</span> be replicated by a script.</p>
+          </motion.div>
+
+          {/* Two columns: Can vs Can't */}
+          <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            {/* Left: What IS hardcoded */}
+            <div className="lg:col-span-4 bg-black/40 backdrop-blur-xl border border-emerald-500/20 rounded-2xl p-5">
+              <h3 className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> What We DID Hardcode</h3>
+              <div className="space-y-2 text-xs text-neutral-500">
+                {[
+                  "5 seeded carriers with base rates",
+                  "Utility function formula (price + time − reliability)",
+                  "Guardrail thresholds ($500 / $2,000)",
+                  "Weather severity → disruption score mapping",
+                  "Hub capacity data structure",
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-500/60 mt-0.5 shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-neutral-600 mt-3 italic">Deterministic logic stays deterministic. That&apos;s good engineering.</p>
+            </div>
+
+            {/* Right: What CANNOT be hardcoded */}
+            <div className="lg:col-span-8 space-y-3">
+              {[
+                {
+                  num: "1",
+                  title: "LLM Contextual Reasoning",
+                  desc: "Gemini synthesizes weather severity, carrier SLA tier, and penalty exposure into a novel, situation-specific assessment. A rule engine would need thousands of if/else branches for every combination.",
+                  icon: <Brain className="w-5 h-5 text-blue-400" />,
+                  cardCls: "border-blue-500/20 hover:border-blue-500/40",
+                  iconBg: "bg-blue-500/10 border-blue-500/20",
+                  pillCls: "text-blue-400 bg-blue-500/10",
+                  example: '"Severe thunderstorm with 0.71 congestion creates cascading hub risk. Recommend immediate reroute."',
+                },
+                {
+                  num: "2",
+                  title: "ML Delay Prediction",
+                  desc: "The Random Forest interpolates across 6 features (traffic × weather × reliability × distance × hour × weekend) producing a continuous prediction. Not a lookup table.",
+                  icon: <BarChart3 className="w-5 h-5 text-violet-400" />,
+                  cardCls: "border-violet-500/20 hover:border-violet-500/40",
+                  iconBg: "bg-violet-500/10 border-violet-500/20",
+                  pillCls: "text-violet-400 bg-violet-500/10",
+                  example: "predict_delay() → 8.47 hours | Confidence: 89% | Risk: CRITICAL",
+                },
+                {
+                  num: "3",
+                  title: "Dynamic Carrier Pricing",
+                  desc: "Budget Freight quotes $280 on sunny days but $420 in a snowstorm. Each carrier's bid changes based on live conditions. A script would need thousands of branches.",
+                  icon: <Coins className="w-5 h-5 text-cyan-400" />,
+                  cardCls: "border-cyan-500/20 hover:border-cyan-500/40",
+                  iconBg: "bg-cyan-500/10 border-cyan-500/20",
+                  pillCls: "text-cyan-400 bg-cyan-500/10",
+                  example: "base_rate × distance × (1 + weather_severity × 0.5) × surge_factor",
+                },
+                {
+                  num: "4",
+                  title: "Self-Improvement Over Time",
+                  desc: "After 10 negotiations, a repeatedly failing carrier drops from 95% → 60% reliability. The utility function naturally stops picking them. No human updates a blacklist.",
+                  icon: <TrendingUp className="w-5 h-5 text-amber-400" />,
+                  cardCls: "border-amber-500/20 hover:border-amber-500/40",
+                  iconBg: "bg-amber-500/10 border-amber-500/20",
+                  pillCls: "text-amber-400 bg-amber-500/10",
+                  example: "Express Logistics: 95% → 80% → 65% → Auto-excluded from future bids",
+                },
+                {
+                  num: "5",
+                  title: "Competing Agent Goals (Game Theory)",
+                  desc: "Shipment Agent wants cheap. Carriers want profit. Warehouse might reject the cheapest option if the hub is full. Competing interests create emergent behavior a linear script can't replicate.",
+                  icon: <Swords className="w-5 h-5 text-rose-400" />,
+                  cardCls: "border-rose-500/20 hover:border-rose-500/40",
+                  iconBg: "bg-rose-500/10 border-rose-500/20",
+                  pillCls: "text-rose-400 bg-rose-500/10",
+                  example: "Cheapest bid rejected → Warehouse at 95% → Next best carrier auto-selected",
+                },
+              ].map((item, i) => (
+                <motion.div key={i} custom={i} variants={cardVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                  className={`bg-black/40 backdrop-blur-xl border ${item.cardCls} rounded-xl p-4 flex gap-4 items-start transition-all group`}
+                >
+                  <div className={`p-2 rounded-lg border ${item.iconBg} shrink-0 mt-0.5`}>
+                    {item.icon}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[9px] font-black ${item.pillCls} px-1.5 py-0.5 rounded`}>{item.num}</span>
+                      <h4 className="text-sm font-bold text-white">{item.title}</h4>
+                    </div>
+                    <p className="text-xs text-neutral-500 leading-relaxed mb-2">{item.desc}</p>
+                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-1.5">
+                      <p className="text-[10px] text-neutral-400 font-mono">{item.example}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ═══════════════ SLIDE 12: Demo CTA ═══════════════ */}
       <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
         <div className="w-full flex flex-col justify-center max-w-5xl mx-auto space-y-8 relative z-10">
           <div className="text-center mb-4">
