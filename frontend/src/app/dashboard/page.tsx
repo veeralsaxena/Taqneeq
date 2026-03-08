@@ -11,7 +11,7 @@ import MarketFeed from "@/components/MarketFeed";
 import CountUp from "react-countup";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8000/api";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 export default function ControlTower() {
   const [state, setState] = useState<any>({ shipments: [], carriers: [], warehouses: [], disruptions: [] });

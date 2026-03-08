@@ -45,7 +45,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8000/api";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 // ─── Agent ↔ Node mapping ───
 const AGENT_NODE_MAP: Record<string, string> = {

@@ -83,7 +83,7 @@ export default function MarketFeed() {
 
   // Fallback REST fetch for initial history
   useEffect(() => {
-    fetch("http://localhost:8000/api/events")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/events`)
       .then((res) => res.json())
       .then((data) => {
         if (data.events) {

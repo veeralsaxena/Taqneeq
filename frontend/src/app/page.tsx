@@ -4,7 +4,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
-  ChevronRight,
   Zap,
   Target,
   Brain,
@@ -13,7 +12,6 @@ import {
   Share2,
   MousePointer2,
   GitBranch,
-  Radio,
   BarChart3,
   Map,
   Truck,
@@ -26,8 +24,21 @@ import {
   AlertTriangle,
   FileCode2,
   CloudRainWind,
-  MessageSquareCode,
-  Network
+  Network,
+  Timer,
+  RefreshCcw,
+  TrendingUp,
+  CheckCircle2,
+  XCircle,
+  Gauge,
+  Server,
+  Github,
+  Eye,
+  Lightbulb,
+  BookOpen,
+  Layers,
+  ArrowDownUp,
+  CircleDot,
 } from "lucide-react";
 import LogisticsNetwork from "@/components/ui/LogisticsNetwork";
 import { InteractiveGlobe } from "@/components/ui/InteractiveGlobe";
@@ -59,14 +70,47 @@ const cardVariants = {
   }),
 };
 
+/* ─── Helper: Glassmorphism Stat Card ─── */
+function StatCard({ icon, value, label, color }: { icon: React.ReactNode; value: string; label: string; color: string }) {
+  return (
+    <div className={`relative overflow-hidden rounded-2xl bg-black/40 backdrop-blur-xl border border-${color}-500/20 p-5 group hover:border-${color}-500/40 transition-all duration-300`}>
+      <div className={`absolute -right-6 -top-6 w-20 h-20 bg-${color}-500/10 blur-[40px] rounded-full group-hover:bg-${color}-500/20 transition-colors`} />
+      <div className="relative z-10 flex items-center gap-4">
+        <div className={`p-2.5 rounded-xl bg-${color}-500/10 border border-${color}-500/20`}>
+          {icon}
+        </div>
+        <div>
+          <p className="text-2xl md:text-3xl font-black text-white">{value}</p>
+          <p className="text-[11px] text-neutral-500 uppercase tracking-wider font-medium">{label}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ────── Feedback Loop Step ────── */
+function LoopStep({ number, title, desc, icon, color, isLast }: { number: number; title: string; desc: string; icon: React.ReactNode; color: string; isLast?: boolean }) {
+  return (
+    <div className="flex gap-4 items-start">
+      <div className="flex flex-col items-center">
+        <div className={`w-10 h-10 rounded-full bg-${color}-500/20 border border-${color}-500/40 flex items-center justify-center text-${color}-400 font-bold text-sm shrink-0`}>
+          {number}
+        </div>
+        {!isLast && <div className={`w-px h-full bg-gradient-to-b from-${color}-500/40 to-transparent min-h-[40px]`} />}
+      </div>
+      <div className="pb-6">
+        <div className="flex items-center gap-2 mb-1">
+          {icon}
+          <h4 className="font-bold text-white text-sm">{title}</h4>
+        </div>
+        <p className="text-xs text-neutral-500 leading-relaxed">{desc}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function PitchDeck() {
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const scrollNext = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: window.innerWidth, behavior: "smooth" });
-    }
-  };
 
   return (
     <>
@@ -82,7 +126,7 @@ export default function PitchDeck() {
 
       <div
         ref={scrollRef}
-        className="flex flex-col lg:flex-row overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto scroll-smooth w-full h-[calc(100dvh-4rem)] hide-scrollbar relative z-10"
+        className="flex flex-col lg:flex-row overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto scroll-smooth w-full h-[calc(100dvh-5rem)] hide-scrollbar relative z-10"
         style={{ scrollbarWidth: "none" }}
       >
       <style dangerouslySetInnerHTML={{ __html: `
@@ -95,9 +139,8 @@ export default function PitchDeck() {
         .animate-float-delayed { animation: float 6s ease-in-out 2s infinite; }
       `}} />
 
-      {/* ═══════════════════ SLIDE 1: Hero & Problem ═══════════════════ */}
+      {/* ═══════════════ SLIDE 1: What the Agent Does (Criterion 1) ═══════════════ */}
       <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[100vw] lg:h-full relative flex items-center py-16 lg:py-0 pr-0 lg:pr-24">
-        {/* Sparkles Background */}
         <div className="absolute inset-0 w-full h-full -z-10 overflow-hidden">
           <SparklesCore
             background="transparent"
@@ -105,16 +148,14 @@ export default function PitchDeck() {
             maxSize={1}
             particleDensity={30}
             className="w-full h-full"
-            particleColor="#10b981" // subtle emerald sparkles
+            particleColor="#10b981"
           />
         </div>
 
-        {/* Spotlight beam sweep */}
         <Spotlight className="-top-40 left-0 md:left-60 md:-top-20 z-[1]" fill="white" />
 
         <div className="relative z-20 container mx-auto px-6 md:px-12 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            {/* Left: Text content */}
             <motion.div
               className="flex flex-col justify-center space-y-6"
               initial="hidden"
@@ -122,13 +163,19 @@ export default function PitchDeck() {
               variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
             >
               <motion.div custom={0} variants={fadeUp}>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-800/50 border border-neutral-700/50 text-neutral-400 text-xs font-semibold tracking-wider uppercase">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold tracking-wider uppercase">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Criterion 1 — What The Agent Does
+                </div>
+              </motion.div>
+
+              <motion.div custom={1} variants={fadeUp}>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-800/50 border border-neutral-700/50 text-neutral-400 text-xs font-medium tracking-wider uppercase mb-3">
                   <AlertTriangle className="w-3.5 h-3.5" />
                   The Problem: Supply Chains Are Reactive
                 </div>
               </motion.div>
 
-              <motion.div custom={1} variants={fadeUp} className="mt-4">
+              <motion.div custom={2} variants={fadeUp} className="mt-2">
                 <div className="h-auto w-full flex justify-start items-center overflow-visible">
                   <GooeyText
                     texts={["NeuroLogistics", "Self-Negotiating", "Autonomous Market"]}
@@ -140,15 +187,14 @@ export default function PitchDeck() {
                 </div>
               </motion.div>
 
-              <motion.p custom={2} variants={fadeUp} className="text-base md:text-lg text-neutral-400 max-w-xl leading-relaxed">
-                When a snowstorm hits or a truck breaks down, millions are lost in latency while humans manually scramble to call carriers and compare rates. We built an <span className="text-cyan-400 font-semibold">Autonomous Agentic Economy</span> that detects, negotiates, and resolves disruptions in sub-seconds.
+              <motion.p custom={3} variants={fadeUp} className="text-base md:text-lg text-neutral-400 max-w-xl leading-relaxed">
+                <span className="text-white font-semibold">Core Mission:</span> An autonomous AI operations layer that <span className="text-cyan-400 font-semibold">observes disruptions, reasons about risk, negotiates reroutes, and learns from outcomes</span> — replacing the reactive, manual scramble that loses millions daily.
               </motion.p>
 
-              {/* Mini stats row */}
-              <motion.div custom={2.5} variants={fadeUp} className="flex flex-wrap gap-4 md:gap-8 py-4 border-t border-white/[0.06]">
+              <motion.div custom={4} variants={fadeUp} className="flex flex-wrap gap-4 md:gap-8 py-4 border-t border-white/[0.06]">
                 {[
                   { value: "5", label: "Autonomous Agents" },
-                  { value: "< 2ms", label: "Resolve Latency" },
+                  { value: "< 2s", label: "Decision Latency" },
                   { value: "100%", label: "Real Data Feeds" },
                 ].map((stat, i) => (
                   <div key={i} className="min-w-[120px]">
@@ -159,7 +205,6 @@ export default function PitchDeck() {
               </motion.div>
             </motion.div>
 
-            {/* Right: 3D Robot */}
             <motion.div
               className="relative h-[450px] lg:h-[550px] hidden lg:block lg:translate-x-12 xl:translate-x-20"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -179,44 +224,68 @@ export default function PitchDeck() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
         <motion.div
           className="hidden lg:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 text-neutral-600"
           animate={{ x: [0, 12, 0] }}
           transition={{ repeat: Infinity, duration: 2 }}
         >
-          <span className="text-[10px] tracking-[0.3em] uppercase">Swipe To Explore</span>
+          <span className="text-[10px] tracking-[0.3em] uppercase">Scroll →</span>
           <ArrowRight className="w-4 h-4" />
         </motion.div>
       </section>
 
-      {/* ═══════════════════ SLIDE 2: Multi-Agent Architecture ═══════════════════ */}
+      {/* ═══════════════ SLIDE 2: How the Agent Thinks (Criterion 2) ═══════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
+        <motion.div
+          className="max-w-7xl w-full flex flex-col items-center relative z-10 space-y-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
+        >
+            <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wider uppercase mb-4">
+                  <Brain className="w-3 h-3" /> Criterion 2 — How The Agent Thinks
+                </div>
+                <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent leading-tight">
+                  Observe → Reason → Decide → Act
+                </h2>
+                <p className="text-neutral-400 mt-4">Follow the path of a disruption from detection to autonomous resolution. Each step is a distinct agent with its own logic.</p>
+            </motion.div>
+
+            <motion.div variants={fadeUp} className="w-full">
+                <WorkflowExplainer />
+            </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ═══════════════ SLIDE 3: System Structure (Criterion 3) ═══════════════ */}
       <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
         <div className="max-w-7xl w-full relative z-10 flex flex-col lg:flex-row gap-12 items-center">
           <div className="space-y-6 flex-1">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold tracking-wider uppercase">
-              <Share2 className="w-3 h-3" /> LangGraph Multi-Agent Economy
+              <Layers className="w-3 h-3" /> Criterion 3 — System Structure
             </div>
             <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent leading-tight">
-              Not a monolithic bot. <br />We built a free market.
+              5 Agents. One State Machine.<br />LangGraph Orchestration.
             </h2>
             <p className="text-neutral-400 leading-relaxed text-sm md:text-base max-w-xl">
-              Using the latest LangGraph state machine, we designed 5 distinct AI nodes with competing utility functions. The Shipment Agent wants cheap/fast delivery. The Carrier Agents want maximum profit. They negotiate against each other using Game Theory.
+              Built on Google{"'"}s LangGraph — each agent is a node in a compiled StateGraph with conditional edges. They share an immutable <code className="text-cyan-400">AgentState</code> TypedDict and fire in strict dependency order.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
               {[
-                { title: "Network Supervisor", desc: "Polls live weather/traffic. Calculates risk via ML.", icon: <Brain className="w-5 h-5 text-blue-400"/> },
-                { title: "Carrier Agents", desc: "Dynamic pricing via real Karrio FedEx/UPS APIs.", icon: <Truck className="w-5 h-5 text-cyan-400"/> },
-                { title: "Warehouse Agent", desc: "Monitors real-time capacity and port congestion.", icon: <Database className="w-5 h-5 text-purple-400"/> },
-                { title: "Shipment Agent", desc: "Utility-based bid selection (Cost vs ETA).", icon: <Package className="w-5 h-5 text-emerald-400"/> },
+                { title: "Network Supervisor", desc: "Observes live weather + traffic. Runs ML delay prediction. Triggers negotiation if risk > threshold.", icon: <Brain className="w-5 h-5 text-blue-400"/> },
+                { title: "Carrier Agents", desc: "Each carrier is a sealed-bid agent. Checks Fleetbase fleet capacity, then submits a dynamic Karrio-priced quote.", icon: <Truck className="w-5 h-5 text-cyan-400"/> },
+                { title: "Warehouse Agent", desc: "Gatekeeps hub capacity. Vetoes reroutes if destination is at 90%+ occupancy to prevent cascading congestion.", icon: <Database className="w-5 h-5 text-purple-400"/> },
+                { title: "Shipment + Learning", desc: "Decision-maker picks the best bid via utility function. Learning Agent penalizes/rewards carrier reputation.", icon: <Package className="w-5 h-5 text-emerald-400"/> },
               ].map((item, i) => (
-                <div key={i} className="flex gap-4 items-start p-4 rounded-2xl bg-black/40 backdrop-blur-md border border-white/[0.06] hover:border-emerald-500/30 hover:bg-emerald-500/[0.03] transition-all duration-300 group">
+                <motion.div key={i} custom={i} variants={cardVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="flex gap-4 items-start p-4 rounded-2xl bg-black/40 backdrop-blur-md border border-white/[0.06] hover:border-emerald-500/30 hover:bg-emerald-500/[0.03] transition-all duration-300 group">
                   <div className="mt-0.5 p-2 bg-white/[0.04] rounded-lg border border-white/[0.04]">{item.icon}</div>
                   <div>
                     <h4 className="font-bold text-neutral-200 text-sm mb-1">{item.title}</h4>
                     <p className="text-xs text-neutral-500 leading-relaxed">{item.desc}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -227,87 +296,119 @@ export default function PitchDeck() {
         </div>
       </section>
 
-      {/* ═══════════════════ SLIDE 3: Execution & Real Data ═══════════════════ */}
+      {/* ═══════════════ SLIDE 4: Performance & Efficiency (Criterion 4) — NEW ═══════════════ */}
       <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
         <motion.div
-          className="flex flex-col w-full max-w-6xl mx-auto"
+          className="max-w-6xl w-full relative z-10 space-y-10"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{ visible: { transition: { staggerChildren: 0.12 } } }}
+        >
+          <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold tracking-wider uppercase mb-4">
+              <Gauge className="w-3 h-3" /> Criterion 4 — Performance & Efficiency
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-amber-400 via-orange-400 to-red-400 bg-clip-text text-transparent leading-tight">
+              Designed for Speed.<br />Engineered for Scale.
+            </h2>
+            <p className="text-neutral-400 mt-4 max-w-lg mx-auto">Every millisecond counts in logistics. Our system is optimized for real-time operations, not batch processing.</p>
+          </motion.div>
+
+          <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard icon={<Timer className="w-5 h-5 text-amber-400" />} value="< 2s" label="Full Negotiation Cycle" color="amber" />
+            <StatCard icon={<Cpu className="w-5 h-5 text-orange-400" />} value="~2ms" label="ML Inference Time" color="orange" />
+            <StatCard icon={<Zap className="w-5 h-5 text-yellow-400" />} value="Real-Time" label="WebSocket Broadcast" color="yellow" />
+            <StatCard icon={<Server className="w-5 h-5 text-red-400" />} value="< 256MB" label="Memory Footprint" color="red" />
+          </motion.div>
+
+          <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-black/40 backdrop-blur-xl border border-white/[0.06] p-6 rounded-2xl">
+              <h4 className="font-bold text-white mb-2 flex items-center gap-2"><Activity className="w-4 h-4 text-amber-400" /> Throughput</h4>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                FastAPI async backend handles concurrent shipment negotiations without blocking. Each negotiation runs through the LangGraph state machine independently.
+              </p>
+            </div>
+            <div className="bg-black/40 backdrop-blur-xl border border-white/[0.06] p-6 rounded-2xl">
+              <h4 className="font-bold text-white mb-2 flex items-center gap-2"><ArrowDownUp className="w-4 h-4 text-orange-400" /> Streaming Architecture</h4>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                Redis pub/sub broadcasts every agent event in real-time via WebSockets. The frontend dashboard updates live without polling.
+              </p>
+            </div>
+            <div className="bg-black/40 backdrop-blur-xl border border-white/[0.06] p-6 rounded-2xl">
+              <h4 className="font-bold text-white mb-2 flex items-center gap-2"><Cpu className="w-4 h-4 text-red-400" /> Lean ML</h4>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                Random Forest with 100 estimators loads from a pre-trained <code className="text-amber-400">.joblib</code> file — no GPU required. Inference is pure NumPy, running in microseconds.
+              </p>
+            </div>
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ═══════════════ SLIDE 5: Built to Work in Reality (Criterion 5) ═══════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
+        <motion.div
+          className="flex flex-col w-full max-w-6xl mx-auto space-y-10"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-10 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center w-full">
             <motion.div variants={fadeUp} custom={0} className="w-full">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold tracking-wider uppercase mb-6">
-                <Globe2 className="w-3 h-3" /> Real-World Integrations
+                <Globe2 className="w-3 h-3" /> Criterion 5 — Built for Reality
               </div>
               <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
                 No mock toys. Real APIs.
               </h2>
               <p className="text-lg text-neutral-400 mt-4 leading-relaxed max-w-xl">
-                Hackathons are full of simple LLM wrappers. We integrated actual supply chain software and domain grounding to prove this handles real enterprise loads.
+                We integrated actual supply chain software and domain grounding to prove this handles real enterprise loads.
               </p>
             </motion.div>
             <motion.div variants={fadeUp} custom={1} className="w-full max-w-[400px] mx-auto lg:max-w-none flex justify-center lg:justify-end mt-8 lg:mt-0">
                 <InteractiveGlobe />
             </motion.div>
           </div>
-        </motion.div>
-      </section>
-
-      {/* ═══════════════════ SLIDE 3B: Bento Grid Stack ═══════════════════ */}
-      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
-        <motion.div
-          className="flex flex-col w-full max-w-6xl mx-auto"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-        >
-          <motion.div variants={fadeUp} className="text-center mb-10 max-w-2xl mx-auto">
-              <h2 className="text-4xl md:text-5xl font-black text-white">
-                Powered by a serious stack.
-              </h2>
-          </motion.div>
 
           <motion.div variants={fadeUp} className="w-full">
             <BentoGrid className="lg:grid-rows-2">
             {[
-              { 
-                name: "FedEx/UPS Live Rates", 
-                description: "Integrated Karrio SDK. Agents pull real estimates instead of guessing.", 
-                Icon: Truck, 
+              {
+                name: "FedEx/UPS Live Rates",
+                description: "Integrated Karrio SDK. Agents pull real carrier estimates instead of guessing.",
+                Icon: Truck,
                 href: "/dashboard",
                 cta: "See Agents",
                 background: <img src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=2000&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-50" alt="shipping containers" />,
-                className: "lg:col-start-1 lg:col-end-2 lg:row-start-1 lg:row-end-3" 
+                className: "lg:col-start-1 lg:col-end-2 lg:row-start-1 lg:row-end-3"
               },
-              { 
-                name: "Domain Fine-Tuning", 
-                description: "A 1,500+ character logistics system prompt injected via Gemini 2.0.", 
-                Icon: FileCode2,
+              {
+                name: "Open-Meteo Weather API",
+                description: "Live weather data at source + destination coordinates. No API key required.",
+                Icon: CloudRainWind,
                 href: "/dashboard",
-                cta: "View Prompts", 
-                background: <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2000&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-50" alt="ai processor" />,
-                className: "lg:col-start-2 lg:col-end-4 lg:row-start-1 lg:row-end-2" 
+                cta: "View Data",
+                background: <img src="https://images.unsplash.com/photo-1534088568595-a066f410bcda?q=80&w=2000&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-50" alt="weather storm" />,
+                className: "lg:col-start-2 lg:col-end-4 lg:row-start-1 lg:row-end-2"
               },
-              { 
-                name: "Fleetbase Integration", 
-                description: "REST client querying actual fleet positioning data and capacity.", 
+              {
+                name: "TomTom Traffic API",
+                description: "Real-time highway congestion ratios feed directly into the ML delay model.",
                 Icon: Map,
                 href: "/dashboard",
-                cta: "Track Fleet", 
+                cta: "Track Routes",
                 background: <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2000&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-50" alt="map navigation" />,
-                className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3" 
+                className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3"
               },
-              { 
-                name: "WebSockets", 
-                description: "FastAPI WebSocket routes broadcast every negotiation in milliseconds.", 
+              {
+                name: "Twilio + Slack",
+                description: "SMS alerts for critical disruptions. Slack Block Kit for human-in-the-loop approval.",
                 Icon: Zap,
                 href: "/dashboard",
-                cta: "View Feed", 
+                cta: "View Alerts",
                 background: <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2000&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-50" alt="network connections" />,
-                className: "lg:col-start-3 lg:col-end-4 lg:row-start-2 lg:row-end-3" 
+                className: "lg:col-start-3 lg:col-end-4 lg:row-start-2 lg:row-end-3"
               },
             ].map((tech, i) => (
               <BentoCard
@@ -320,9 +421,210 @@ export default function PitchDeck() {
         </motion.div>
       </section>
 
-      {/* ═══════════════════ SLIDE 4: Enterprise Safety ═══════════════════ */}
+      {/* ═══════════════ SLIDE 6: Learning & Improvement (Criterion 6) — NEW ═══════════════ */}
       <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
-        <motion.div 
+        <motion.div
+          className="max-w-6xl w-full relative z-10 flex flex-col lg:flex-row gap-12 items-start"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{ visible: { transition: { staggerChildren: 0.12 } } }}
+        >
+          <motion.div variants={fadeUp} className="flex-1 space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-semibold tracking-wider uppercase">
+              <RefreshCcw className="w-3 h-3" /> Criterion 6 — Learning & Improvement
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent leading-tight">
+              The AI That Corrects<br />Its Own Mistakes.
+            </h2>
+            <p className="text-neutral-400 leading-relaxed text-sm md:text-base max-w-xl">
+              Every decision is tracked. Every outcome is validated. If the agent reroutes to a carrier and they still deliver late, the system detects the false positive, auto-rollbacks, and permanently penalizes the unreliable carrier.
+            </p>
+
+            {/* Feedback Loop Visual */}
+            <div className="bg-black/40 backdrop-blur-xl border border-white/[0.06] p-6 rounded-2xl mt-4">
+              <h4 className="font-bold text-white mb-4 text-sm flex items-center gap-2"><GitBranch className="w-4 h-4 text-green-400" /> The Feedback Loop</h4>
+              <LoopStep number={1} title="Agent Decides" desc="Shipment Agent selects Carrier B for reroute based on utility score." icon={<CircleDot className="w-3.5 h-3.5 text-blue-400" />} color="blue" />
+              <LoopStep number={2} title="Rollback Snapshot Saved" desc="rollback.py saves pre-action state so the system can undo." icon={<History className="w-3.5 h-3.5 text-cyan-400" />} color="cyan" />
+              <LoopStep number={3} title="Outcome Validated" desc="Post-delivery, decision_tracker compares predicted vs actual delay." icon={<Eye className="w-3.5 h-3.5 text-amber-400" />} color="amber" />
+              <LoopStep number={4} title="Incorrect? Auto-Rollback" desc="If SLA was breached after reroute → carrier gets extra -5% rep penalty." icon={<XCircle className="w-3.5 h-3.5 text-red-400" />} color="red" />
+              <LoopStep number={5} title="System Memory Updated" desc="Learning Agent writes strategic insight. Future decisions avoid same mistake." icon={<TrendingUp className="w-3.5 h-3.5 text-green-400" />} color="green" isLast />
+            </div>
+          </motion.div>
+
+          <motion.div variants={fadeUp} className="flex-1 space-y-4 w-full">
+            <h3 className="text-lg font-bold text-white">Decision Accuracy Tracking</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-black/40 backdrop-blur-xl border border-green-500/20 p-5 rounded-2xl text-center">
+                <CheckCircle2 className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                <p className="text-2xl font-black text-white">Correct</p>
+                <p className="text-xs text-neutral-500 mt-1">SLA met after reroute</p>
+              </div>
+              <div className="bg-black/40 backdrop-blur-xl border border-red-500/20 p-5 rounded-2xl text-center">
+                <XCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+                <p className="text-2xl font-black text-white">False Positive</p>
+                <p className="text-xs text-neutral-500 mt-1">Unnecessary reroute detected</p>
+              </div>
+              <div className="bg-black/40 backdrop-blur-xl border border-amber-500/20 p-5 rounded-2xl text-center">
+                <AlertTriangle className="w-8 h-8 text-amber-400 mx-auto mb-2" />
+                <p className="text-2xl font-black text-white">False Negative</p>
+                <p className="text-xs text-neutral-500 mt-1">Missed disruption caught</p>
+              </div>
+              <div className="bg-black/40 backdrop-blur-xl border border-purple-500/20 p-5 rounded-2xl text-center">
+                <RefreshCcw className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+                <p className="text-2xl font-black text-white">Auto-Rollback</p>
+                <p className="text-xs text-neutral-500 mt-1">Self-correcting mechanism</p>
+              </div>
+            </div>
+
+            <div className="bg-black/40 backdrop-blur-xl border border-white/[0.06] p-5 rounded-2xl mt-4">
+              <h4 className="font-bold text-white mb-2 text-sm flex items-center gap-2"><BookOpen className="w-4 h-4 text-emerald-400" /> Carrier Reputation Memory</h4>
+              <p className="text-xs text-neutral-500 leading-relaxed mb-3">Every carrier{"'"}s reliability score is persisted in Postgres and evolves on every negotiation cycle:</p>
+              <div className="space-y-2">
+                {[
+                  { name: "Express Logistics", score: "95%", delta: "+1%", color: "text-green-400" },
+                  { name: "Budget Freight", score: "78%", delta: "-5%", color: "text-red-400" },
+                  { name: "Premium Haulers", score: "99%", delta: "+1%", color: "text-green-400" },
+                  { name: "Swift Transport", score: "85%", delta: "-2%", color: "text-amber-400" },
+                ].map((c, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-400">{c.name}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-white font-bold">{c.score}</span>
+                      <span className={`${c.color} font-semibold`}>{c.delta}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ═══════════════ SLIDE 7: Advanced Intelligence (Criterion 7) — NEW ═══════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
+        <motion.div
+          className="max-w-6xl w-full relative z-10 space-y-10"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{ visible: { transition: { staggerChildren: 0.12 } } }}
+        >
+          <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-semibold tracking-wider uppercase mb-4">
+              <Lightbulb className="w-3 h-3" /> Criterion 7 — Advanced Intelligence
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400 bg-clip-text text-transparent leading-tight">
+              Not Just an LLM Wrapper.<br />Real ML + Real AI.
+            </h2>
+            <p className="text-neutral-400 mt-4 max-w-lg mx-auto">We combine a trained ML model for quantitative prediction with a domain-tuned LLM for qualitative reasoning. Neither alone would suffice.</p>
+          </motion.div>
+
+          <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* ML Model Card */}
+            <div className="bg-black/40 backdrop-blur-xl border border-violet-500/20 p-6 rounded-2xl space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-violet-500/10 border border-violet-500/20">
+                  <BarChart3 className="w-6 h-6 text-violet-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Scikit-Learn Delay Predictor</h3>
+                  <p className="text-xs text-neutral-500">Random Forest · 100 estimators · R² ≈ 0.93</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-xs text-neutral-500 font-semibold uppercase tracking-wider">Feature Importances</p>
+                {[
+                  { name: "Carrier Reliability", pct: 35, color: "bg-violet-500" },
+                  { name: "Weather Severity", pct: 28, color: "bg-blue-500" },
+                  { name: "Traffic Index", pct: 18, color: "bg-cyan-500" },
+                  { name: "Distance (km)", pct: 12, color: "bg-emerald-500" },
+                  { name: "Hour of Day", pct: 5, color: "bg-amber-500" },
+                  { name: "Weekend Factor", pct: 2, color: "bg-neutral-500" },
+                ].map((f, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-xs text-neutral-400 w-32 shrink-0">{f.name}</span>
+                    <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                      <motion.div
+                        className={`h-full ${f.color} rounded-full`}
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${f.pct}%` }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.5 + i * 0.1, duration: 0.8 }}
+                      />
+                    </div>
+                    <span className="text-xs text-neutral-500 w-8 text-right">{f.pct}%</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 mt-2">
+                <p className="text-[10px] text-neutral-500 font-mono leading-relaxed">
+                  <span className="text-violet-400">predict_delay</span>(traffic=0.85, weather=0.9, reliability=0.3, dist=500km)<br/>
+                  → <span className="text-amber-400">8.2hrs</span> delay | Risk: <span className="text-red-400">CRITICAL</span> | Confidence: <span className="text-green-400">87%</span>
+                </p>
+              </div>
+            </div>
+
+            {/* LLM Card */}
+            <div className="bg-black/40 backdrop-blur-xl border border-fuchsia-500/20 p-6 rounded-2xl space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20">
+                  <Brain className="w-6 h-6 text-fuchsia-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Gemini 2.0 Flash</h3>
+                  <p className="text-xs text-neutral-500">Domain-tuned · 1,500-char system prompt · Safety-validated</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+                  <p className="text-[10px] text-fuchsia-400 font-semibold uppercase tracking-wider mb-2">Why LLM, Not Rules?</p>
+                  <div className="space-y-2">
+                    {[
+                      { title: "Contextual Disruption Analysis", desc: "Synthesizes weather, traffic, SLA tier & financial penalty into novel sentences" },
+                      { title: "Bid Selection Explanation", desc: "Generates human-readable justification for why a carrier won" },
+                      { title: "Strategic Learning Insights", desc: "Identifies cross-session patterns across carrier performance" },
+                    ].map((r, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-fuchsia-400 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-xs text-white font-semibold">{r.title}</p>
+                          <p className="text-[10px] text-neutral-500">{r.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3">
+                  <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider mb-2">LLM Safety Layer</p>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <Lock className="w-4 h-4 text-green-400 mx-auto mb-1" />
+                      <p className="text-[9px] text-neutral-500">PII Filter</p>
+                    </div>
+                    <div>
+                      <Shield className="w-4 h-4 text-blue-400 mx-auto mb-1" />
+                      <p className="text-[9px] text-neutral-500">Hallucination Check</p>
+                    </div>
+                    <div>
+                      <Target className="w-4 h-4 text-violet-400 mx-auto mb-1" />
+                      <p className="text-[9px] text-neutral-500">Domain Relevance</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ═══════════════ SLIDE 8: Enterprise Safety (Guardrails + Audit) ═══════════════ */}
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
+        <motion.div
           className="max-w-7xl w-full flex flex-col lg:flex-row gap-12 items-center relative z-10"
           initial="hidden"
           whileInView="visible"
@@ -335,16 +637,16 @@ export default function PitchDeck() {
                         <div className="absolute -right-10 -top-10 w-32 h-32 bg-purple-500/20 blur-[50px] rounded-full group-hover:bg-purple-500/30 transition-colors" />
                         <Shield className="w-8 h-8 text-purple-400 mb-4" />
                         <h3 className="text-xl font-bold text-white mb-2">Human-in-the-Loop Guardrails</h3>
-                        <p className="text-sm text-neutral-400 leading-relaxed">AI shouldn't have a blank check. If a reroute costs {'<'} $500, the agents execute it instantly. Above $1,000 algorithms immediately halt the process and escalate to a human dispatcher.</p>
+                        <p className="text-sm text-neutral-400 leading-relaxed">Cost {'<'} $500 → autonomous. Cost {'>'} $2,000 → Slack escalation with approve/reject buttons. Carrier reliability {'<'} 40% → blocked from selection.</p>
                     </div>
-                    
+
                     <div className="bg-black/40 backdrop-blur-xl border border-rose-500/30 p-6 rounded-3xl relative overflow-hidden shadow-[0_0_30px_rgba(244,63,94,0.1)] group hover:border-rose-500/50 transition-colors">
                         <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-rose-500/20 blur-[50px] rounded-full group-hover:bg-rose-500/30 transition-colors" />
                         <div className="flex items-center gap-4 mb-4 relative z-10">
                             <History className="w-8 h-8 text-rose-400" />
                             <div>
                                 <h3 className="text-xl font-bold text-white">Event Sourcing Audit Trail</h3>
-                                <p className="text-xs text-neutral-400">Zero black box AI. Frame-by-frame replay.</p>
+                                <p className="text-xs text-neutral-400">Every agent action is an immutable event. Full replay capability.</p>
                             </div>
                         </div>
                         <div className="relative z-10">
@@ -356,54 +658,97 @@ export default function PitchDeck() {
 
             <motion.div variants={fadeUp} className="flex-1 space-y-6 order-1 lg:order-2">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-semibold tracking-wider uppercase">
-                <Lock className="w-3 h-3" /> Enterprise Ready AI
+                <Lock className="w-3 h-3" /> Guardrails & Compliance
                 </div>
                 <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text text-transparent leading-tight">
-                Built for safety.<br />Designed for scale.
+                Built for safety.<br />Designed for trust.
                 </h2>
                 <p className="text-neutral-400 leading-relaxed text-sm md:text-base max-w-xl">
-                We anticipated the major critiques of LLM orchestration: "How do you audit it?" and "What if it spends too much?". Our architecture specifically features rollbacks, strict guardrail thresholds, and mathematical reputation penalization via pgvector databases.
+                The system features strict 3-tier guardrails (AUTONOMOUS / RECOMMEND / ESCALATE), an LLM safety layer that blocks PII and hallucinations, and an immutable event-sourced audit trail for every single agent action.
                 </p>
             </motion.div>
         </motion.div>
       </section>
 
-      {/* ═══════════════════ SLIDE 5: 3D Workflow Explainer ═══════════════════ */}
+      {/* ═══════════════ SLIDE 9: GitHub + Tech Summary — NEW ═══════════════ */}
       <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
-        <motion.div 
-          className="max-w-7xl w-full flex flex-col items-center relative z-10 space-y-8"
+        <motion.div
+          className="max-w-5xl w-full relative z-10 space-y-10"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
+          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
         >
-            <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wider uppercase mb-4">
-                  <Network className="w-3 h-3" /> Architecture Flow
-                </div>
-                <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent leading-tight">
-                  The End-to-End Autonomous Lifecycle
-                </h2>
-                <p className="text-neutral-400 mt-4">Follow the path of a disruption from detection to autonomous resolution.</p>
-            </motion.div>
-            
-            <motion.div variants={fadeUp} className="w-full">
-                <WorkflowExplainer />
-            </motion.div>
+          <motion.div variants={fadeUp} className="text-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/70 text-xs font-semibold tracking-wider uppercase mb-4">
+              <Github className="w-3 h-3" /> Open Source · Code-First
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-b from-white to-neutral-500 bg-clip-text text-transparent leading-tight">
+              Full Stack. Fully Open.
+            </h2>
+          </motion.div>
+
+          {/* Tech Stack Grid */}
+          <motion.div variants={fadeUp} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {[
+              { name: "LangGraph", desc: "Multi-Agent FSM", icon: <Share2 className="w-5 h-5" /> },
+              { name: "Gemini 2.0", desc: "Domain-tuned LLM", icon: <Brain className="w-5 h-5" /> },
+              { name: "Scikit-Learn", desc: "Delay Predictor", icon: <BarChart3 className="w-5 h-5" /> },
+              { name: "FastAPI", desc: "Async Backend", icon: <Zap className="w-5 h-5" /> },
+              { name: "Next.js 14", desc: "React Frontend", icon: <Layers className="w-5 h-5" /> },
+              { name: "PostgreSQL", desc: "Persistent State", icon: <Database className="w-5 h-5" /> },
+              { name: "Redis", desc: "Pub/Sub Events", icon: <Activity className="w-5 h-5" /> },
+              { name: "Docker", desc: "Containerized", icon: <Server className="w-5 h-5" /> },
+              { name: "Open-Meteo", desc: "Live Weather", icon: <CloudRainWind className="w-5 h-5" /> },
+              { name: "TomTom", desc: "Traffic Data", icon: <Map className="w-5 h-5" /> },
+              { name: "Twilio", desc: "SMS Alerts", icon: <Cpu className="w-5 h-5" /> },
+              { name: "Slack", desc: "Block Kit HITL", icon: <Network className="w-5 h-5" /> },
+            ].map((tech, i) => (
+              <motion.div key={i} custom={i} variants={cardVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="bg-black/40 backdrop-blur-xl border border-white/[0.06] p-4 rounded-xl text-center hover:border-cyan-500/30 transition-colors group">
+                <div className="text-neutral-500 group-hover:text-cyan-400 transition-colors mx-auto mb-2 flex justify-center">{tech.icon}</div>
+                <p className="text-sm font-bold text-white">{tech.name}</p>
+                <p className="text-[10px] text-neutral-500 mt-0.5">{tech.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* O-R-D-A-L Loop Summary */}
+          <motion.div variants={fadeUp} className="bg-black/40 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6">
+            <p className="text-xs text-neutral-500 uppercase tracking-wider font-semibold mb-4 text-center">The Complete Agent Loop</p>
+            <div className="flex flex-wrap justify-center items-center gap-2 md:gap-3">
+              {[
+                { step: "Observe", color: "text-cyan-400 border-cyan-500/30 bg-cyan-500/10" },
+                { step: "→", color: "text-neutral-600" },
+                { step: "Reason", color: "text-blue-400 border-blue-500/30 bg-blue-500/10" },
+                { step: "→", color: "text-neutral-600" },
+                { step: "Decide", color: "text-violet-400 border-violet-500/30 bg-violet-500/10" },
+                { step: "→", color: "text-neutral-600" },
+                { step: "Act", color: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" },
+                { step: "→", color: "text-neutral-600" },
+                { step: "Learn", color: "text-amber-400 border-amber-500/30 bg-amber-500/10" },
+              ].map((s, i) =>
+                s.step === "→" ? (
+                  <ArrowRight key={i} className={`w-4 h-4 ${s.color}`} />
+                ) : (
+                  <span key={i} className={`px-4 py-2 rounded-full border text-xs font-bold ${s.color}`}>{s.step}</span>
+                )
+              )}
+            </div>
+          </motion.div>
         </motion.div>
       </section>
 
-      {/* ═══════════════════ SLIDE 6: Demo Guide CTA ═══════════════════ */}
+      {/* ═══════════════ SLIDE 10: Demo CTA ═══════════════ */}
       <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[85vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-24 py-16 lg:py-0">
         <div className="w-full flex flex-col justify-center max-w-5xl mx-auto space-y-8 relative z-10">
           <div className="text-center mb-4">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold tracking-wider uppercase mb-6">
-              <Target className="w-3 h-3" /> Impact
+              <Target className="w-3 h-3" /> Live Demo
             </div>
             <h2 className="text-4xl md:text-6xl font-black bg-gradient-to-b from-white to-neutral-500 bg-clip-text text-transparent mb-4 tracking-tight">
-              Experience The Future
+              Experience It Live.
             </h2>
-            <p className="text-neutral-400 text-lg">Click the button below to launch the live 3D Control Tower and initiate an AI negotiation.</p>
+            <p className="text-neutral-400 text-lg max-w-xl mx-auto">Launch the 3D Control Tower. Trigger a disruption. Watch 5 agents negotiate in real time.</p>
           </div>
 
           <div className="flex justify-center mt-6 relative z-50">

@@ -4,7 +4,7 @@ import axios from "axios";
 import { BarChart3, Trophy, DollarSign, Brain, TrendingDown, TrendingUp, Target } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
 
-const API = "http://localhost:8000/api";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 export default function AnalyticsPage() {
   const [reputation, setReputation] = useState<any>({ leaderboard: [] });

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Radio, CloudSnow, Truck, Wind, Gauge, AlertTriangle, Thermometer, Droplets, RotateCcw } from "lucide-react";
 
-const API = "http://localhost:8000/api";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 const locations = ["Factory A", "Factory B", "Retailer B", "Retailer C", "Hub Alpha", "Hub Beta"];
 const disruptions = [
