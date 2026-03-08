@@ -7,3 +7,7 @@ venv/
 backend/backend.log
 frontend/frontend.log
 .DS_Store
+.env.local
+backend/logs/
+backend/*.db
+*.log
