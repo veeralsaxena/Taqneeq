@@ -132,7 +132,7 @@ export default function PitchDeck() {
 
       <div
         ref={scrollRef}
-        className="flex flex-col lg:flex-row overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto scroll-smooth w-full h-[calc(100dvh-5rem)] hide-scrollbar relative z-10"
+        className="flex flex-col lg:flex-row overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto scroll-smooth w-full h-[calc(100dvh-6rem)] hide-scrollbar relative z-10"
         style={{ scrollbarWidth: "none" }}
       >
       <style dangerouslySetInnerHTML={{ __html: `
