@@ -104,7 +104,7 @@ export function GooeyText({
         </defs>
       </svg>
 
-      <div className="w-full relative" style={{ filter: "url(#threshold)" }}>
+      <div className="w-full h-full relative" style={{ filter: "url(#threshold)" }}>
         <span
           ref={text1Ref}
           className={`absolute left-0 top-1/2 -translate-y-1/2 inline-block select-none text-left w-full origin-left ${textClassName || ""}`}

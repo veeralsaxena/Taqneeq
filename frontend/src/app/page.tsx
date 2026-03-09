@@ -132,7 +132,7 @@ export default function PitchDeck() {
 
       <div
         ref={scrollRef}
-        className="flex flex-col lg:flex-row overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto scroll-smooth w-full h-[calc(100dvh-6rem)] hide-scrollbar relative z-10"
+        className="flex flex-col lg:flex-row overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto scroll-smooth w-full h-[calc(100dvh-5rem)] hide-scrollbar relative z-10"
         style={{ scrollbarWidth: "none" }}
       >
       <style dangerouslySetInnerHTML={{ __html: `
@@ -163,7 +163,7 @@ export default function PitchDeck() {
         <div className="relative z-20 container mx-auto px-6 md:px-12 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <motion.div
-              className="flex flex-col justify-center space-y-6"
+              className="flex flex-col justify-center space-y-6 relative z-10"
               initial="hidden"
               animate="visible"
               variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
@@ -182,13 +182,13 @@ export default function PitchDeck() {
               </motion.div>
 
               <motion.div custom={2} variants={fadeUp} className="mt-2">
-                <div className="h-auto w-full flex justify-start items-center overflow-visible">
+                <div className="min-h-[80px] md:min-h-[100px] w-full flex justify-start items-center overflow-visible">
                   <GooeyText
                     texts={["NeuroLogistics", "Self-Negotiating", "Autonomous Market"]}
                     morphTime={1.4}
                     cooldownTime={1.5}
-                    className="h-[60px] md:h-[80px]"
-                    textClassName="text-white text-3xl md:text-[4rem] font-black tracking-tighter leading-tight"
+                    className="h-full"
+                    textClassName="text-white text-[28px] sm:text-4xl md:text-[4rem] font-black tracking-tighter leading-tight whitespace-nowrap"
                   />
                 </div>
               </motion.div>
@@ -212,7 +212,7 @@ export default function PitchDeck() {
             </motion.div>
 
             <motion.div
-              className="relative h-[450px] lg:h-[550px] hidden lg:block lg:translate-x-12 xl:translate-x-20"
+              className="absolute inset-0 lg:relative h-[600px] lg:h-[550px] lg:translate-x-12 xl:translate-x-20 opacity-30 lg:opacity-100 pointer-events-none lg:pointer-events-auto -z-0 lg:z-10"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5, duration: 0.8 }}
@@ -321,7 +321,7 @@ export default function PitchDeck() {
             <p className="text-neutral-400 mt-4 max-w-lg mx-auto">Every millisecond counts in logistics. Our system is optimized for real-time operations, not batch processing.</p>
           </motion.div>
 
-          <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard icon={<Timer className="w-5 h-5 text-amber-400" />} value="< 2s" label="Full Negotiation Cycle" color="amber" />
             <StatCard icon={<Cpu className="w-5 h-5 text-orange-400" />} value="~2ms" label="ML Inference Time" color="orange" />
             <StatCard icon={<Zap className="w-5 h-5 text-yellow-400" />} value="Real-Time" label="WebSocket Broadcast" color="yellow" />

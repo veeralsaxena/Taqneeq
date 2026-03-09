@@ -31,13 +31,13 @@ export default function Navbar() {
             : "bg-black/30 backdrop-blur-md"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between py-3">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between py-2.5">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group flex-shrink-0" onClick={() => setMobileMenuOpen(false)}>
             <img 
               src="/logo.png" 
               alt="NeuroLogistics" 
-              className="h-16 w-auto object-contain group-hover:brightness-125 transition-all duration-300"
+              className="h-10 sm:h-12 w-auto object-contain group-hover:brightness-125 transition-all duration-300"
             />
             <span className="text-xl font-bold text-white tracking-tight">
               NeuroLogistics
@@ -86,7 +86,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[45] pt-[88px] bg-black/95 backdrop-blur-3xl lg:hidden flex flex-col"
+            className="fixed inset-0 z-[45] pt-[72px] bg-black/95 backdrop-blur-3xl lg:hidden flex flex-col"
           >
             <div className="flex-1 overflow-y-auto px-6 py-8 flex flex-col gap-6">
               <div className="flex flex-col gap-2">
