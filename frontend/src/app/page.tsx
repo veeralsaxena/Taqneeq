@@ -896,9 +896,9 @@ export default function PitchDeck() {
       </section>
 
       {/* ═══════════════ SLIDE 11: Why Not Just Hardcode? ═══════════════ */}
-      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[100vw] lg:h-full relative flex items-center justify-center p-6 md:p-8 lg:pr-12 py-16 lg:py-0">
+      <section className="flex-none min-h-[100dvh] lg:min-h-0 min-w-full lg:min-w-[100vw] lg:h-full relative flex flex-col items-center justify-center lg:justify-start p-6 md:p-8 lg:pr-12 py-16 lg:py-6 overflow-y-auto hide-scrollbar">
         <motion.div
-          className="max-w-6xl w-full relative z-10 space-y-8"
+          className="max-w-6xl w-full relative z-10 space-y-8 lg:my-auto"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
